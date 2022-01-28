@@ -15,14 +15,26 @@ import (
 )
 
 type Peer struct {
-	address     string
-	peer        []string
-	numPeers    int
-	source_date string
+	peerList []string
+	numPeers int
+}
+
+func NewPeer(peerList []string, numPeers int) Peer {
+	return Peer{peerList, numPeers}
+}
+
+type Source struct {
+	address   string
+	peers     *Peer
+	timeStamp string
 }
 
 func getCurrentDateTime() string {
 	return time.Now().Format("2006-01-02 15:04:05")
+}
+
+func NewSource(address string, peers *Peer) Source {
+	return Source{address, peers, getCurrentDateTime()}
 }
 
 func listAllFiles(dir string) []string {
@@ -80,10 +92,14 @@ func main() {
 
 	host := args[0]
 	port := args[1]
+	address := host + ":" + port
 
 	teamName := "Jorge Avila"
-	peers := []string{}
-	numPeers := 0
+	var peers Peer
+	sources := NewSource(address, &peers)
+	fmt.Println(sources.timeStamp)
+	// peers := []string{}
+	// numPeers := 0
 	source := 0
 
 	// connect to the socket
@@ -120,42 +136,44 @@ func main() {
 			fmt.Println("Server is sending a list of peers")
 			fmt.Println("Receive it after the Enter key is pressed: ")
 			bufio.NewReader(os.Stdin).ReadString('\n')
-
+			// sources.timeStamp = getCurrentDateTime()
 			// get the number of peers
 			scanner.Scan()
 			num, _ := strconv.Atoi(scanner.Text())
-			numPeers = num
+			peers.numPeers = num
 			// get the peers
-			for i := 0; i < numPeers; i++ {
+			for i := 0; i < peers.numPeers; i++ {
 				scanner.Scan()
 				// insert if unique
-				if strings.Contains(strings.Join(peers, " "), scanner.Text()) == false {
-					peers = append(peers, scanner.Text())
+				if strings.Contains(strings.Join(peers.peerList, " "), scanner.Text()) == false {
+					peers.peerList = append(peers.peerList, scanner.Text())
+					// peers = append(peers.p, scanner.Text())
 				}
 			}
-			fmt.Printf("Peers Received: %v\n\n", peers)
+			// sources.peers.peerList = peers.peerList
+			fmt.Printf("Peers Received: %v\n\n", peers.peerList)
 
 		} else if scanner.Text() == "get report" {
 			fmt.Println("Server is asking for your report ")
 			fmt.Println("Send it after the Enter key is pressed: ")
 			bufio.NewReader(os.Stdin).ReadString('\n')
-			report := strconv.Itoa(numPeers) + "\n"
-			if numPeers == 0 {
+			report := strconv.Itoa(peers.numPeers) + "\n"
+			if peers.numPeers == 0 {
 				report += "0\n0\n"
 				fmt.Fprintf(conn, report)
 			} else {
 				// This is only guaranteed to work for tis iteration
 				source = 1
 
-				for _, peer := range peers {
+				for _, peer := range peers.peerList {
 					report += peer + "\n"
 				}
-
+				// log.Println(sources.timeStamp)
 				report += strconv.Itoa(source) + "\n"
-				report += host + ":" + port + "\n"
-				report += getCurrentDateTime() + "\n"
-				report += strconv.Itoa(numPeers) + "\n"
-				for _, peer := range peers {
+				report += sources.address + "\n"
+				report += sources.timeStamp + "\n"
+				report += strconv.Itoa(sources.peers.numPeers) + "\n"
+				for _, peer := range sources.peers.peerList {
 					report += peer + "\n"
 				}
 
