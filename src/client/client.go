@@ -1,4 +1,4 @@
-// import packages for the client
+// TCP client code
 
 package client
 

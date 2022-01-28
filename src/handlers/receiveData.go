@@ -1,3 +1,5 @@
+// Handles the receiving of data from the server
+
 package handlers
 
 import (

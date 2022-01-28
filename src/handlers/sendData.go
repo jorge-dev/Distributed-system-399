@@ -1,3 +1,5 @@
+// Handle all send requests
+
 package handlers
 
 import (
@@ -28,7 +30,6 @@ func SendCode(conn net.Conn, counter int) {
 	}
 	code := common.PrintAllFiles("../src/", didPrint)
 	fmt.Fprintf(conn, "Go\n%s\n...\n", code)
-	// fmt.Fprintf(conn, "java\ncode\n...\n")
 }
 
 func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {

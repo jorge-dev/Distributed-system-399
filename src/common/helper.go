@@ -1,3 +1,5 @@
+// Helper methods used by other packages
+
 package common
 
 import (
@@ -8,10 +10,12 @@ import (
 	"time"
 )
 
+// gets the current date and time in MT format
 func GetCurrentDateTime() string {
 	return time.Now().Format("2006-01-02 15:04:05")
 }
 
+// Saves all the files(not dir) in the directory to a string
 func ListAllFiles(dir string) []string {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -30,6 +34,7 @@ func ListAllFiles(dir string) []string {
 
 }
 
+// Reads and stores file contents (from the path arg provided)into a string
 func GetFileContents(file_path string) string {
 	file, err := os.Open(file_path)
 	if err != nil {
@@ -44,6 +49,7 @@ func GetFileContents(file_path string) string {
 	return string(b)
 }
 
+// Prints all the file contents from a given directory
 func PrintAllFiles(dir string, didPrint bool) string {
 	files := ListAllFiles(dir)
 	var code string

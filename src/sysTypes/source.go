@@ -1,3 +1,5 @@
+// Declare thr Source type (Data Structure) and its methods
+
 package sysTypes
 
 import (
