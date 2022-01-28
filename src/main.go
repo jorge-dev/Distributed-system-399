@@ -11,7 +11,7 @@ func main() {
 	// get host and port from command line
 	args := os.Args[1:]
 	if len(args) != 2 {
-		fmt.Println("Usage: client host port")
+		fmt.Println("Usage: go run main.go <host> <port>")
 		os.Exit(1)
 
 	}

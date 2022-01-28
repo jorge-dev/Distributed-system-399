@@ -44,12 +44,15 @@ func GetFileContents(file_path string) string {
 	return string(b)
 }
 
-func PrintAllFiles(dir string) string {
+func PrintAllFiles(dir string, didPrint bool) string {
 	files := ListAllFiles(dir)
 	var code string
 
 	for i, file := range files {
-		code += "\n// File " + strconv.Itoa(i+1) + " out of " + strconv.Itoa(len(files)) + ":\n\n"
+		if didPrint {
+			code += "\n//****Duplicated code file due to server multiple requests****\n"
+		}
+		code += "\n// File " + strconv.Itoa(i+1) + " out of " + strconv.Itoa(len(files)) + ": " + file + "\n\n"
 		code += GetFileContents(file)
 	}
 	return code

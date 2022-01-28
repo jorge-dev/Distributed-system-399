@@ -18,11 +18,15 @@ func SendTeamName(conn net.Conn, teamName string) {
 	fmt.Fprintf(conn, teamName+"\n")
 }
 
-func SendCode(conn net.Conn) {
-	fmt.Println("Server is asking for your code ")
+func SendCode(conn net.Conn, counter int) {
+	didPrint := false
+	fmt.Println("Server is, asking for your code ")
 	fmt.Println("Send it after the Enter key is pressed: ")
 	bufio.NewReader(os.Stdin).ReadString('\n')
-	code := common.PrintAllFiles("../src/")
+	if counter > 0 {
+		didPrint = true
+	}
+	code := common.PrintAllFiles("../src/", didPrint)
 	fmt.Fprintf(conn, "Go\n%s\n...\n", code)
 	// fmt.Fprintf(conn, "java\ncode\n...\n")
 }
@@ -36,7 +40,7 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 		report += "0\n0\n"
 		fmt.Fprintf(conn, report)
 	} else {
-		// This is only guaranteed to work for tis iteration
+
 		numberOfSources := len(sources)
 		peersSentFromSource := sources[0].GetPeerType()
 
@@ -44,7 +48,6 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 			report += peer + "\n"
 		}
 
-		// log.Println(sources.timeStamp)
 		report += strconv.Itoa(numberOfSources) + "\n"
 		report += sources[0].GetSourceAddress() + "\n"
 		report += sources[0].GetTimeStamp() + "\n"
@@ -56,8 +59,4 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 		fmt.Fprintf(conn, report)
 
 	}
-
-	// send the number of peers and the peers
-
-	// fmt.Fprintf(conn, "0\n0\n0\n")
 }
