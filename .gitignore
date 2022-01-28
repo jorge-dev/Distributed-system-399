@@ -19,4 +19,4 @@ sourceCode
 
 # Java
 *.class
-*.log
+*.log*
