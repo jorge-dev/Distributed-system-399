@@ -5,10 +5,10 @@ package handlers
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
+	"github.com/jorge-dev/Distributed-system-559/src/peerProc"
 	"github.com/jorge-dev/Distributed-system-559/src/sysTypes"
 )
 
@@ -17,7 +17,7 @@ func ReceivePeers(scanner *bufio.Scanner, source *sysTypes.Source) sysTypes.Peer
 	source.UpdateTimeStamp()
 	fmt.Println("Server is sending a list of peers")
 	fmt.Println("Receive it after the Enter key is pressed: ")
-	bufio.NewReader(os.Stdin).ReadString('\n')
+	// bufio.NewReader(os.Stdin).ReadString('\n')
 
 	scanner.Scan()
 	num, _ := strconv.Atoi(scanner.Text())
@@ -29,6 +29,7 @@ func ReceivePeers(scanner *bufio.Scanner, source *sysTypes.Source) sysTypes.Peer
 		// Append only if string is not already in the list
 		if strings.Contains(strings.Join(peer.GetPeerList(), " "), scanner.Text()) == false {
 			peer.Append(scanner.Text())
+			peerProc.AddPeer(scanner.Text(), source.GetAddress())
 		}
 	}
 
