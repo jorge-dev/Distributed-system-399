@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"strconv"
@@ -53,36 +54,48 @@ var mutex = &sync.Mutex{}
 var currentTime int = 0
 
 func AddPeer(peerAddress string, sourceAddress string) {
+	// check if the peer is already in the list
 	mutex.Lock()
+	for _, peer := range listPeers {
+		if peer.peerAddress == peerAddress {
+			mutex.Unlock()
+			return
+		}
+	}
 	listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, time.Now()})
-	fmt.Printf("Peers in the list: %v\n", listPeers)
 	mutex.Unlock()
+	fmt.Printf("Peers in the list: %v\n", listPeers)
+
+	// mutex.Lock()
+	// listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, time.Now()})
+	// fmt.Printf("Peers in the list: %v\n", listPeers)
+	// mutex.Unlock()
 }
 
 func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 	listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		messageHandler(conn, sourceAddress)
 	}()
 
-	// go func() {
-	// 	defer wg.Done()
-	// 	snipHandler(sourceAddress)
-	// }()
-
-	// go func() {
-	// 	defer wg.Done()
-	// 	peerSender(sourceAddress)
-	// }()
+	go func() {
+		defer wg.Done()
+		snipHandler(sourceAddress)
+	}()
 
 	go func() {
 		defer wg.Done()
-		handleInactivePeers(sourceAddress)
+		peerSender(sourceAddress)
 	}()
+
+	// go func() {
+	// 	defer wg.Done()
+	// 	handleInactivePeers(sourceAddress)
+	// }()
 	wg.Wait()
 
 }
@@ -94,6 +107,7 @@ func handleInactivePeers(sourceAddress string) {
 		// listPeersCopy := make([]PeerInfo, len(listPeers))
 		// copy(listPeersCopy, listPeers)
 		mutex.Lock()
+		fmt.Printf("Peers in the list: %v\n", listPeers)
 		if len(listPeers) > 0 {
 			for i := 0; i < len(listPeers); i++ {
 				if listPeers[i].peerAddress != sourceAddress {
@@ -115,20 +129,30 @@ func peerSender(sourceAddress string) {
 		mutex.Lock()
 		if len(listPeers) > 0 {
 			currentTime++
-			for i := 0; i < len(listPeers); i++ {
-				for j := 0; j < len(listPeers); j++ {
-					if CheckForValidAddress(listPeers[j].peerAddress) {
-						if listPeers[j].peerAddress != sourceAddress {
+			// send a random peer to all peers
+			peerlen := len(listPeers)
 
-							msg := "peer" + listPeers[i].peerAddress + "\n"
-							sendMessage(listPeers[j].peerAddress, msg)
-
-							// Update Sent peer info
-							listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{listPeers[i].peerAddress, listPeers[j].peerAddress, time.Now()})
-						}
-					}
+			for _, peer := range listPeers {
+				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
+					randPeer := listPeers[rand.Intn(peerlen)]
+					fmt.Printf("Sending peer info to %s\n", randPeer.peerAddress)
+					sendMessage(peer.peerAddress, UDP_PEER+" "+randPeer.peerAddress)
+					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
 				}
 			}
+			// for i := 0; i < len(listPeers); i++ {
+			// 	if CheckForValidAddress(listPeers[j].peerAddress) {
+			// 		if listPeers[i].peerAddress != sourceAddress {
+
+			// 			msg := "peer" + listPeers[i].peerAddress + "\n"
+			// 			sendMessage(listPeers[i].peerAddress, msg)
+
+			// 			// Update Sent peer info
+			// 			listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{listPeers[i].peerAddress, listPeers[j].peerAddress, time.Now()})
+			// 		}
+
+			// 	}
+			// }
 		}
 		mutex.Unlock()
 	}
