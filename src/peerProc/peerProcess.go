@@ -78,10 +78,10 @@ func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 		peerSender(sourceAddress)
 	}()
 
-	// go func() {
-	// 	defer wg.Done()
-	// 	handleInactivePeers(sourceAddress)
-	// }()
+	go func() {
+		defer wg.Done()
+		handleInactivePeers(sourceAddress)
+	}()
 	wg.Wait()
 
 }
