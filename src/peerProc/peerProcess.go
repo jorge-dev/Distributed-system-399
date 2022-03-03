@@ -55,6 +55,7 @@ var currentTime int = 0
 func AddPeer(peerAddress string, sourceAddress string) {
 	mutex.Lock()
 	listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, time.Now()})
+	fmt.Printf("Peers in the list: %v\n", listPeers)
 	mutex.Unlock()
 }
 
@@ -62,7 +63,7 @@ func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 	listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		messageHandler(conn, sourceAddress)
@@ -73,10 +74,10 @@ func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 	// 	snipHandler(sourceAddress)
 	// }()
 
-	go func() {
-		defer wg.Done()
-		peerSender(sourceAddress)
-	}()
+	// go func() {
+	// 	defer wg.Done()
+	// 	peerSender(sourceAddress)
+	// }()
 
 	go func() {
 		defer wg.Done()
