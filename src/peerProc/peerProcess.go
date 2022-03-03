@@ -62,16 +62,16 @@ func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 	listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
-	wg.Add(4)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		messageHandler(conn, sourceAddress)
 	}()
 
-	go func() {
-		defer wg.Done()
-		snipHandler(sourceAddress)
-	}()
+	// go func() {
+	// 	defer wg.Done()
+	// 	snipHandler(sourceAddress)
+	// }()
 
 	go func() {
 		defer wg.Done()
@@ -119,7 +119,7 @@ func peerSender(sourceAddress string) {
 					if CheckForValidAddress(listPeers[j].peerAddress) {
 						if listPeers[j].peerAddress != sourceAddress {
 
-							msg := UDP_PEER + listPeers[i].peerAddress
+							msg := "peer" + listPeers[i].peerAddress + "\n"
 							sendMessage(listPeers[j].peerAddress, msg)
 
 							// Update Sent peer info
