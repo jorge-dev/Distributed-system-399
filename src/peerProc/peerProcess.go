@@ -91,12 +91,12 @@ func handleInactivePeers(sourceAddress string) {
 	for {
 		time.Sleep(time.Second * 10)
 		// make a copy of the list of peers
-		listPeersCopy := make([]PeerInfo, len(listPeers))
-		copy(listPeersCopy, listPeers)
+		// listPeersCopy := make([]PeerInfo, len(listPeers))
+		// copy(listPeersCopy, listPeers)
 		mutex.Lock()
 		if len(listPeers) > 0 {
-			for i := 0; i < len(listPeersCopy); i++ {
-				if listPeersCopy[i].peerAddress != sourceAddress {
+			for i := 0; i < len(listPeers); i++ {
+				if listPeers[i].peerAddress != sourceAddress {
 					if time.Since(listPeers[i].lastSeen) > time.Second*10 {
 						listPeers = append(listPeers[:i], listPeers[i+1:]...)
 						fmt.Printf("Peer %s is inactive and removed from the list\n", listPeers[i].peerAddress)
