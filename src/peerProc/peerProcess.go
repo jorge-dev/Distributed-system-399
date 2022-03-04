@@ -176,7 +176,7 @@ func handleInactivePeers(sourceAddress string, ctx context.Context) {
 }
 
 func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context) {
-
+	rand.Seed(time.Now().UnixNano())
 	for {
 		select {
 		case <-context.Done():
