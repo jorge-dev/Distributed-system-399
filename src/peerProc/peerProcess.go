@@ -113,7 +113,7 @@ func handleInactivePeers(sourceAddress string) {
 				if listPeers[i].peerAddress != sourceAddress {
 					if time.Since(listPeers[i].lastSeen) > time.Second*10 {
 						listPeers = append(listPeers[:i], listPeers[i+1:]...)
-						fmt.Printf("Peer %s is inactive and removed from the list\n", listPeers[i].peerAddress)
+						// fmt.Printf("Peer %s is inactive and removed from the list\n", listPeers[i].peerAddress)
 					}
 				}
 			}
