@@ -200,6 +200,10 @@ func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
 	// defer conn.Close()
 
 	udpAdd, err := net.ResolveUDPAddr("udp", peerAddress)
+	if err != nil {
+		fmt.Println("Error in resolving UDP address, error is: ", err)
+		return
+	}
 
 	_, err = conn.WriteToUDP([]byte(msg), udpAdd)
 	if err != nil {
