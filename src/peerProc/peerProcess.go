@@ -131,11 +131,11 @@ func peerSender(sourceAddress string) {
 			currentTime++
 			// send a random peer to all peers
 			peerlen := len(listPeers)
-
+			fmt.Printf("Sending peer info to")
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 					randPeer := listPeers[rand.Intn(peerlen)]
-					fmt.Printf("Sending peer info to %s\n", randPeer.peerAddress)
+
 					sendMessage(peer.peerAddress, UDP_PEER+" "+randPeer.peerAddress)
 					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
 				}
@@ -181,6 +181,7 @@ func sendSnip(msg string, sourceAddress string) {
 	currentTime++
 	mutex.Lock()
 	// Send the message to all peers
+	fmt.Printf("Sending message to")
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 			go sendMessage(peer.peerAddress, msg)
@@ -192,7 +193,7 @@ func sendSnip(msg string, sourceAddress string) {
 func sendMessage(peerAddress, msg string) {
 	conn := startUdpClient(peerAddress)
 	defer conn.Close()
-	fmt.Printf("Sending message to %s\n", peerAddress)
+
 	_, err := conn.Write([]byte(msg))
 	if err != nil {
 		fmt.Printf("Error while sending message to %s due to following error: \n %v", peerAddress, err)
