@@ -148,7 +148,7 @@ func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context
 			randPeer := listPeers[rand.Intn(peerlen)]
 			fmt.Println("Sending peers")
 			for _, peer := range listPeers {
-				if CheckForValidAddress(peer.peerAddress) {
+				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 					sendMessage(peer.peerAddress, UDP_PEER+randPeer.peerAddress, conn)
 					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
 					peerCount++
