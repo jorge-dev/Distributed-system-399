@@ -4,6 +4,7 @@ package client
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -27,7 +28,7 @@ const (
 )
 
 // Creates a new client and attempts to connect to the server
-func ConnectTCP(host, port, udpHost, udpPort string) error {
+func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
@@ -43,50 +44,59 @@ func ConnectTCP(host, port, udpHost, udpPort string) error {
 	}
 
 	// close the connection when the function returns
-	defer connection.Close()
+	// defer connection.Close()
 
 	scanner := bufio.NewScanner(connection)
 	getCodeRequestCounter := 0
 	// loop until the connection is closed or error is found
+	go func() {
+		<-ctx.Done()
+		connection.Close()
+	}()
+
 	for {
-
-		if !scanner.Scan() {
-			fmt.Println("Server Disconnected")
-			break
-		}
-
-		switch scanner.Text() {
-		case GET_NAME:
-			handlers.SendTeamName(connection, "Jorge Avila")
-			break
-		case GET_CODE:
-			handlers.SendCode(connection, getCodeRequestCounter)
-			getCodeRequestCounter++
-			break
-		case GET_LOCATION:
-			handlers.SendLocation(connection, udpSourceAddress)
-		case GET_REPORT:
-			handlers.SendReport(connection, peer, sources)
-			break
-		case RECEIVE_PEERS:
-			peer = handlers.ReceivePeers(scanner, &sources[0])
-			break
-		case CLOSE:
-			fmt.Println("Server is closing the connection ...")
-			break
+		select {
+		case <-ctx.Done():
+			fmt.Println("Closing the TCP connection")
+			connection.Close()
+			return nil
 		default:
-			fmt.Printf("Unknown request &s\n", scanner.Text())
-			break
+
+			if !scanner.Scan() {
+				fmt.Println("Server Disconnected")
+				break
+			}
+
+			switch scanner.Text() {
+			case GET_NAME:
+				handlers.SendTeamName(connection, "Jorge Avila")
+
+			case GET_CODE:
+				handlers.SendCode(connection, getCodeRequestCounter)
+				getCodeRequestCounter++
+
+			case GET_LOCATION:
+				handlers.SendLocation(connection, udpSourceAddress)
+			case GET_REPORT:
+				handlers.SendReport(connection, peer, sources)
+
+			case RECEIVE_PEERS:
+				peer = handlers.ReceivePeers(scanner, &sources[0])
+
+			case CLOSE:
+				fmt.Println("Server is closing the connection ...")
+				connection.Close()
+				return nil
+			default:
+				fmt.Printf("Unknown request &s\n", scanner.Text())
+
+			}
 		}
 	}
 
-	fmt.Println("Connection closed")
-
-	return nil
-
 }
 
-func ConnectUdpServer(host string, port string) error {
+func ConnectUdpServer(host string, port string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
@@ -106,7 +116,7 @@ func ConnectUdpServer(host string, port string) error {
 	}
 
 	// Call the peer process
-	peerProc.PeerProcess(conn, sourceAddress)
+	peerProc.PeerProcess(conn, sourceAddress, ctx)
 	return err
 
 }

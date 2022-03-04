@@ -2,6 +2,7 @@ package peerProc
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"math/rand"
 	"net"
@@ -71,38 +72,43 @@ func AddPeer(peerAddress string, sourceAddress string) {
 	// mutex.Unlock()
 }
 
-func PeerProcess(conn *net.UDPConn, sourceAddress string) {
+func PeerProcess(conn *net.UDPConn, sourceAddress string, ctx context.Context) {
 	listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
+	childCtx, cancel := context.WithCancel(ctx)
 	wg.Add(4)
 	go func() {
 		defer wg.Done()
-		messageHandler(conn, sourceAddress)
+		messageHandler(conn, sourceAddress, childCtx, cancel)
 	}()
 
 	go func() {
 		defer wg.Done()
-		snipHandler(sourceAddress, conn)
+		snipHandler(sourceAddress, conn, childCtx)
 	}()
 
 	go func() {
 		defer wg.Done()
-		peerSender(sourceAddress, conn)
+		peerSender(sourceAddress, conn, childCtx)
 	}()
 
 	go func() {
 		defer wg.Done()
-		handleInactivePeers(sourceAddress)
+		handleInactivePeers(sourceAddress, childCtx)
 	}()
 	wg.Wait()
 
 }
 
-func handleInactivePeers(sourceAddress string) {
+func handleInactivePeers(sourceAddress string, ctx context.Context) {
 	for {
-
-		time.Sleep(time.Second * 10)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Second * 15):
+		}
+		// time.Sleep(time.Second * 10)
 		// make a copy of the list of peers
 		// listPeersCopy := make([]PeerInfo, len(listPeers))
 		// copy(listPeersCopy, listPeers)
@@ -123,10 +129,16 @@ func handleInactivePeers(sourceAddress string) {
 	}
 }
 
-func peerSender(sourceAddress string, conn *net.UDPConn) {
+func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context) {
 
 	for {
-		time.Sleep(time.Second * 5)
+		select {
+		case <-context.Done():
+			return
+		case <-time.After(time.Second * 5):
+
+		}
+
 		mutex.Lock()
 		if len(listPeers) > 0 {
 			peerCount := 0
@@ -162,7 +174,7 @@ func peerSender(sourceAddress string, conn *net.UDPConn) {
 
 }
 
-func snipHandler(sourceAddress string, conn *net.UDPConn) {
+func snipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
 	ch := make(chan string)
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -172,6 +184,8 @@ func snipHandler(sourceAddress string, conn *net.UDPConn) {
 	}()
 	for {
 		select {
+		case <-ctx.Done():
+			return
 		case msg := <-ch:
 			sendSnip(msg, sourceAddress, conn)
 		}
@@ -235,44 +249,56 @@ func CheckForValidAddress(address string) bool {
 	return true
 }
 
-func messageHandler(conn *net.UDPConn, sourceAddress string) {
+func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context, cancel context.CancelFunc) {
+
+	go func() {
+		<-ctx.Done()
+		conn.Close()
+	}()
+
 	for {
-		msg, senderAddr, err := receiveUdpMessage(sourceAddress, conn)
-		if err != nil {
-			fmt.Println("Error while receiving message: ", err)
-			continue
-		}
-		// update last seen
-		for i := 0; i < len(listPeers); i++ {
-			if listPeers[i].peerAddress == senderAddr {
-				listPeers[i].lastSeen = time.Now()
+		select {
+		case <-ctx.Done():
+			fmt.Println("Closing the connection")
+			return
+		default:
+			msg, senderAddr, err := receiveUdpMessage(sourceAddress, conn)
+			if err != nil {
+				fmt.Println("Error while receiving message: ", err)
+				continue
+			}
+			// update last seen
+			for i := 0; i < len(listPeers); i++ {
+				if listPeers[i].peerAddress == senderAddr {
+					listPeers[i].lastSeen = time.Now()
+				}
+			}
+
+			// only focus on first 4 characters
+			fmt.Printf("Message received from %s: %s\n", senderAddr, msg)
+			if len(msg) >= 4 {
+				switch msg[:4] {
+				case UDP_STOP:
+					fmt.Println("Stopping UDP server")
+					conn.Close()
+					cancel()
+					return
+				case UDP_SNIP:
+					fmt.Println("Snipping UDP server")
+					command := strings.Trim(msg[4:], "\n")
+					go storeSnips(command, senderAddr)
+				case UDP_PEER:
+					fmt.Println("Peer info received")
+					peerAddr := strings.Trim(msg[4:], "\n")
+					go storePeers(peerAddr, senderAddr)
+				default:
+					fmt.Printf("Unknown command received from %s: %s\n", senderAddr, msg)
+
+				}
+			} else {
+				fmt.Println("Message is not long enough to be a command")
 			}
 		}
-
-		// only focus on first 4 characters
-		fmt.Printf("Message received from %s: %s\n", senderAddr, msg)
-		if len(msg) >= 4 {
-			switch msg[:4] {
-			case UDP_STOP:
-				fmt.Println("Stopping UDP server")
-				conn.Close()
-				return
-			case UDP_SNIP:
-				fmt.Println("Snipping UDP server")
-				command := strings.Trim(msg[4:], "\n")
-				go storeSnips(command, senderAddr)
-			case UDP_PEER:
-				fmt.Println("Peer info received")
-				peerAddr := strings.Trim(msg[4:], "\n")
-				go storePeers(peerAddr, senderAddr)
-			default:
-				fmt.Printf("Unknown command received from %s: %s\n", senderAddr, msg)
-
-			}
-		} else {
-			fmt.Println("Message is not long enough to be a command")
-		}
-
 	}
 }
 

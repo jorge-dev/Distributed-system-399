@@ -2,9 +2,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/jorge-dev/Distributed-system-559/src/client"
 )
@@ -24,29 +27,44 @@ func main() {
 	udpHost := args[2]
 	udpPort := args[3]
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
 	// connect to the server
 	go func() {
 		defer wg.Done()
-		err := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort)
+		err := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, ctx)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
 	}()
 
-	// connect to the server
+	// connect to the Udp server
 	go func() {
 		defer wg.Done()
-		err := client.ConnectUdpServer(udpHost, udpPort)
+		err := client.ConnectUdpServer(udpHost, udpPort, ctx)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
+		cancel()
 	}()
 
+	osSignal := make(chan os.Signal, 1)
+	signal.Notify(osSignal, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(osSignal, os.Interrupt, os.Kill)
+
+	select {
+	case <-osSignal:
+		fmt.Println("\nShutting down gracefully ...")
+		cancel()
+
+	case <-ctx.Done():
+		fmt.Println("\nShutting down gracefully...")
+	}
 	wg.Wait()
 
 }
