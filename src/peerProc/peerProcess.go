@@ -294,8 +294,8 @@ func peerListIndexLookUp(peerAddr string) int {
 func storeSnips(command string, senderAddr string) {
 	msg := strings.Split(command, " ")
 	timestamp, _ := strconv.Atoi(msg[0])
-	if len(msg) != 2 {
-		fmt.Printf("Invalid snip command: message: %s%s\n", command, msg)
+	if len(msg) < 2 {
+		fmt.Printf("Invalid snip command: \n message: %s%s\n", command, msg)
 		return
 	}
 	// Store the snip to list
