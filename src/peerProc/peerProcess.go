@@ -142,7 +142,7 @@ func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context
 		mutex.Lock()
 		if len(listPeers) > 0 {
 			peerCount := 0
-			currentTime++
+			// currentTime++
 			// send a random peer to all peers
 			peerlen := len(listPeers)
 			randPeer := listPeers[rand.Intn(peerlen)]
