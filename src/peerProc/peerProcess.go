@@ -282,7 +282,7 @@ func storePeers(peerAddr string, senderAddr string) {
 	sourceIndex := peerListIndexLookUp(senderAddr)
 
 	// If the peer is not in the list, add it
-	if peerIndex == -1 {
+	if peerIndex == -1 && CheckForValidAddress(peerAddr) {
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{peerAddr, senderAddr, time.Now()})
 		mutex.Unlock()
@@ -290,7 +290,7 @@ func storePeers(peerAddr string, senderAddr string) {
 	}
 
 	// If the source is not in the list, add it
-	if sourceIndex == -1 {
+	if sourceIndex == -1 && CheckForValidAddress(peerAddr) {
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{senderAddr, senderAddr, time.Now()})
 		mutex.Unlock()
@@ -324,8 +324,11 @@ func storeSnips(command string, senderAddr string) {
 		return
 	}
 	// Store the snip to list
+	// join the rest of the message
+	snipContent := strings.Join(msg[1:], " ")
+
 	mutex.Lock()
-	listSnips = append(listSnips, Snip{msg[1], senderAddr, timestamp})
+	listSnips = append(listSnips, Snip{snipContent, senderAddr, timestamp})
 	mutex.Unlock()
 
 	// update last seen
