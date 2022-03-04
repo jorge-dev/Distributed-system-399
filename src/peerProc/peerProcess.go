@@ -423,6 +423,8 @@ func storeSnips(command string, senderAddr string) {
 		currentTime = timestamp
 	} else if timestamp == currentTime {
 		timestamp++
+	} else if timestamp < currentTime {
+		timestamp = currentTime
 	}
 
 	mutex.Lock()
