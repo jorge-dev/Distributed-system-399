@@ -7,7 +7,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
+	"strconv"
+	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/handlers"
 	"github.com/jorge-dev/Distributed-system-559/src/peerProc"
@@ -28,15 +31,19 @@ const (
 )
 
 var peer sysTypes.Peer
+var sources []sysTypes.Source
+var name string = "JorgeAvila" + strconv.Itoa(rand.Intn(100))
 
 // Creates a new client and attempts to connect to the server
 func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error {
-
+	rand.Seed(time.Now().UnixNano())
+	var name string = "JorgeAvila" + strconv.Itoa(rand.Intn(100))
+	// fmt.Println("Name: ", name)
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
 	udpSourceAddress := udpHost + ":" + udpPort
 
-	sources := []sysTypes.Source{sysTypes.NewSource(sourceAddress, &peer)}
+	sources = []sysTypes.Source{sysTypes.NewSource(sourceAddress, &peer)}
 
 	// Attempt to connect to the socket
 	connection, err := net.Dial("tcp", sourceAddress)
@@ -72,7 +79,8 @@ loop:
 
 			switch scanner.Text() {
 			case GET_NAME:
-				handlers.SendTeamName(connection, "Jorge Avila")
+
+				handlers.SendTeamName(connection, name)
 
 			case GET_CODE:
 				handlers.SendCode(connection, getCodeRequestCounter)
@@ -80,25 +88,24 @@ loop:
 
 			case GET_LOCATION:
 				handlers.SendLocation(connection, udpSourceAddress)
-			case GET_REPORT:
-				handlers.SendReport(connection, peer, sources)
-
 			case RECEIVE_PEERS:
 				peer = handlers.ReceivePeers(scanner, &sources[0])
+			case GET_REPORT:
+				handlers.SendReport(connection, peer, sources)
+				fmt.Println("Report sent")
 
 			case CLOSE:
 				fmt.Println("Server is closing the connection ...")
 				connection.Close()
 				return nil
 			default:
-				fmt.Printf("Unknown request &s\n", scanner.Text())
+				fmt.Printf("Unknown request %s\n", scanner.Text())
 
 			}
 		}
 	}
 	return nil
 }
-
 func ConnectUdpServer(host string, port string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
