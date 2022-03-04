@@ -131,11 +131,10 @@ func peerSender(sourceAddress string) {
 			currentTime++
 			// send a random peer to all peers
 			peerlen := len(listPeers)
-			fmt.Printf("Sending peers")
+			randPeer := listPeers[rand.Intn(peerlen)]
+			fmt.Println("Sending peers")
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
-					randPeer := listPeers[rand.Intn(peerlen)]
-
 					sendMessage(peer.peerAddress, UDP_PEER+" "+randPeer.peerAddress)
 					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
 				}
@@ -181,7 +180,7 @@ func sendSnip(msg string, sourceAddress string) {
 	currentTime++
 	mutex.Lock()
 	// Send the message to all peers
-	fmt.Printf("Sending messages")
+	fmt.Println("Sending messages")
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 			go sendMessage(peer.peerAddress, msg)
@@ -275,13 +274,17 @@ func storePeers(peerAddr string, senderAddr string) {
 
 	// If the peer is not in the list, add it
 	if peerIndex == -1 {
+		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{peerAddr, senderAddr, time.Now()})
+		mutex.Unlock()
 		fmt.Printf("New peer added: %s\n", peerAddr)
 	}
 
 	// If the source is not in the list, add it
 	if sourceIndex == -1 {
+		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{senderAddr, senderAddr, time.Now()})
+		mutex.Unlock()
 		fmt.Printf("New source added: %s\n", senderAddr)
 	}
 
@@ -312,7 +315,9 @@ func storeSnips(command string, senderAddr string) {
 		return
 	}
 	// Store the snip to list
+	mutex.Lock()
 	listSnips = append(listSnips, Snip{msg[1], senderAddr, timestamp})
+	mutex.Unlock()
 
 	// update last seen
 	for i := 0; i < len(listPeers); i++ {
