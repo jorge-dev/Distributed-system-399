@@ -193,9 +193,10 @@ func snipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
 }
 
 func sendSnip(msg string, sourceAddress string, conn *net.UDPConn) {
+
+	currentTime++
 	snipCurrentTime := strconv.Itoa(currentTime)
 	msg = "snip" + snipCurrentTime + " " + msg
-	currentTime++
 	mutex.Lock()
 	// Send the message to all peers
 	fmt.Println("Sending messages")
