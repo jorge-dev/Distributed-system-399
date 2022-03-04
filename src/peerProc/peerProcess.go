@@ -185,6 +185,8 @@ func sendSnip(msg string, sourceAddress string) {
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 			go sendMessage(peer.peerAddress, msg)
+		} else {
+			fmt.Printf("Invalid peer address %s\n", peer.peerAddress)
 		}
 	}
 	mutex.Unlock()
@@ -241,19 +243,26 @@ func messageHandler(conn *net.UDPConn, sourceAddress string) {
 
 		// only focus on first 4 characters
 		fmt.Printf("Message received from %s: %s\n", senderAddr, msg)
-		switch msg[:4] {
-		case UDP_STOP:
-			fmt.Println("Stopping UDP server")
-			conn.Close()
-			return
-		case UDP_SNIP:
-			fmt.Println("Snipping UDP server")
-			command := strings.Trim(msg[4:], "\n")
-			go storeSnips(command, senderAddr)
-		case UDP_PEER:
-			fmt.Println("Peer info received")
-			peerAddr := strings.Trim(msg[4:], "\n")
-			go storePeers(peerAddr, senderAddr)
+		if len(msg) >= 4 {
+			switch msg[:4] {
+			case UDP_STOP:
+				fmt.Println("Stopping UDP server")
+				conn.Close()
+				return
+			case UDP_SNIP:
+				fmt.Println("Snipping UDP server")
+				command := strings.Trim(msg[4:], "\n")
+				go storeSnips(command, senderAddr)
+			case UDP_PEER:
+				fmt.Println("Peer info received")
+				peerAddr := strings.Trim(msg[4:], "\n")
+				go storePeers(peerAddr, senderAddr)
+			default:
+				fmt.Printf("Unknown command received from %s: %s\n", senderAddr, msg)
+
+			}
+		} else {
+			fmt.Println("Message is not long enough to be a command")
 		}
 
 	}
@@ -293,7 +302,11 @@ func peerListIndexLookUp(peerAddr string) int {
 
 func storeSnips(command string, senderAddr string) {
 	msg := strings.Split(command, " ")
-	timestamp, _ := strconv.Atoi(msg[0])
+	timestamp, err := strconv.Atoi(msg[0])
+	if err != nil {
+		fmt.Println("Timestamp is not a valid number")
+		return
+	}
 	if len(msg) < 2 {
 		fmt.Printf("Invalid snip command: \n message: %s%s\n", command, msg)
 		return
