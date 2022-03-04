@@ -48,11 +48,10 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 		fmt.Println("No peers found")
 		report += "0\n0\n"
 		conn.Write([]byte(report))
-		// fmt.Fprintf(conn, report)
+
 	} else {
 		fmt.Println("After if inseide else")
 		numberOfSources := len(sources)
-		// peersSentFromSource := sources[0].GetPeerType()
 
 		for _, peer := range peers.GetPeerList() {
 			report += peer + "\n"
@@ -61,17 +60,13 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 		report += strconv.Itoa(numberOfSources) + "\n"
 		report += sources[0].GetSourceAddress() + "\n"
 		report += sources[0].GetTimeStamp() + "\n"
-		// report += strconv.Itoa(peersSentFromSource.NumPeers) + "\n"
-		// for _, peer := range peersSentFromSource.GetPeerList() {
-		// 	report += peer + "\n"
-		// }
-		report += peerProc.ConvertlistPeersToString()
-		report += peerProc.ConvertlistReceivedPeerInfoToString()
-		report += peerProc.ConvertlistSentPeerInfoToString()
-		report += peerProc.ConvertlistSnipsToString()
-		fmt.Printf("\nReport: %s\n", report)
+
+		report += peerProc.PreparelistPeersToString()
+		report += peerProc.PreparelistReceivedPeerInfoToString()
+		report += peerProc.PreparelistSentPeerInfoToString()
+		report += peerProc.PreparelistSnipsToString()
+		// fmt.Printf("\nReport: %s\n", report)
 		conn.Write([]byte(report))
-		// fmt.Fprintf(conn, report)
 
 	}
 }

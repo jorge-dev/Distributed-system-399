@@ -9,7 +9,6 @@ import (
 	"log"
 	"math/rand"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/handlers"
@@ -25,20 +24,15 @@ const (
 	GET_LOCATION  string = "get location"
 	CLOSE         string = "close"
 	RECEIVE_PEERS string = "receive peers"
-	UDP_STOP      string = "stop"
-	UDP_SNIP      string = "snip"
-	UDP_PEER      string = "peer"
 )
 
 var peer sysTypes.Peer
 var sources []sysTypes.Source
-var name string = "JorgeAvila" + strconv.Itoa(rand.Intn(100))
 
 // Creates a new client and attempts to connect to the server
 func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error {
 	rand.Seed(time.Now().UnixNano())
-	var name string = "JorgeAvila" + strconv.Itoa(rand.Intn(100))
-	// fmt.Println("Name: ", name)
+	var name string = "Jorge Avila"
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
 	udpSourceAddress := udpHost + ":" + udpPort
@@ -63,6 +57,7 @@ func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error 
 		connection.Close()
 	}()
 
+	// This is the main loop of the client
 loop:
 	for {
 		select {
