@@ -422,11 +422,11 @@ func storeSnips(command string, senderAddr string) {
 	if timestamp > currentTime {
 		currentTime = timestamp
 	} else if timestamp == currentTime {
-		currentTime++
+		timestamp++
 	}
 
 	mutex.Lock()
-	listSnips = append(listSnips, Snip{snipContent, senderAddr, currentTime})
+	listSnips = append(listSnips, Snip{snipContent, senderAddr, timestamp})
 	mutex.Unlock()
 
 	// update last seen
