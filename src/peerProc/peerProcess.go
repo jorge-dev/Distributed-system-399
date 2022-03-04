@@ -185,7 +185,7 @@ func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context
 			// send a random peer to all peers
 			peerlen := len(listPeers)
 			randPeer := listPeers[rand.Intn(peerlen)]
-			fmt.Println("Sending peers")
+			// fmt.Println("Sending peers")
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 					sendMessage(peer.peerAddress, UDP_PEER+randPeer.peerAddress, conn)
@@ -193,7 +193,7 @@ func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context
 					peerCount++
 				}
 			}
-			fmt.Printf("Number of Peers sent: %d\n", peerCount)
+			// fmt.Printf("Number of Peers sent: %d\n", peerCount)
 			// for i := 0; i < len(listPeers); i++ {
 			// 	if CheckForValidAddress(listPeers[j].peerAddress) {
 			// 		if listPeers[i].peerAddress != sourceAddress {
@@ -238,12 +238,12 @@ func sendSnip(msg string, sourceAddress string, conn *net.UDPConn) {
 	msg = "snip" + snipCurrentTime + " " + msg
 	mutex.Lock()
 	// Send the message to all peers
-	fmt.Println("Sending messages")
+	// fmt.Println("Sending messages")
 	for _, peer := range listPeers {
-		if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
+		if CheckForValidAddress(peer.peerAddress) {
 			go sendMessage(peer.peerAddress, msg, conn)
 		} else {
-			fmt.Printf("Invalid peer address %s\n", peer.peerAddress)
+			// fmt.Printf("Invalid peer address %s\n", peer.peerAddress)
 		}
 	}
 	mutex.Unlock()
@@ -260,7 +260,7 @@ func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
 	}
 
 	_, err = conn.WriteToUDP([]byte(msg), udpAdd)
-	fmt.Printf("Message : {%s} sent to %s\n", msg, peerAddress)
+	// fmt.Printf("Message :like i have no one  {%s} sent to %s\n", msg, peerAddress)
 	if err != nil {
 		fmt.Printf("Error while sending message to %s due to following error: \n %v", peerAddress, err)
 		return
@@ -325,7 +325,7 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 					cancel()
 					return
 				case UDP_SNIP:
-					fmt.Println("Snipping UDP server")
+					fmt.Println("Receiving Snips")
 					command := strings.Trim(msg[4:], "\n")
 					go storeSnips(command, senderAddr)
 				case UDP_PEER:
