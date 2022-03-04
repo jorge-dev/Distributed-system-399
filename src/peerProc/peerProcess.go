@@ -125,11 +125,12 @@ func handleInactivePeers(sourceAddress string) {
 }
 
 func peerSender(sourceAddress string) {
-	peerCount := 0
+
 	for {
 		time.Sleep(time.Second * 5)
 		mutex.Lock()
 		if len(listPeers) > 0 {
+			peerCount := 0
 			currentTime++
 			// send a random peer to all peers
 			peerlen := len(listPeers)
@@ -143,7 +144,6 @@ func peerSender(sourceAddress string) {
 				}
 			}
 			fmt.Printf("Number of Peers sent: %d\n", peerCount)
-			peerCount = 0
 			// for i := 0; i < len(listPeers); i++ {
 			// 	if CheckForValidAddress(listPeers[j].peerAddress) {
 			// 		if listPeers[i].peerAddress != sourceAddress {
