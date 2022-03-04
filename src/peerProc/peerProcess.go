@@ -155,13 +155,13 @@ func peerSender(sourceAddress string, conn *net.UDPConn, context context.Context
 			// send a random peer to all peers
 			peerlen := len(listPeers)
 			randPeer := listPeers[rand.Intn(peerlen)]
-			for {
-				if CheckForValidAddress(randPeer.peerAddress) {
-					break
-				} else {
-					randPeer = listPeers[rand.Intn(peerlen)]
-				}
-			}
+			// for {
+			// 	if CheckForValidAddress(randPeer.peerAddress) {
+			// 		break
+			// 	} else {
+			// 		randPeer = listPeers[rand.Intn(peerlen)]
+			// 	}
+			// }
 			// check if the randompeer is valid
 
 			// fmt.Println("Sending peers")
