@@ -419,16 +419,10 @@ func storeSnips(command string, senderAddr string) {
 	snipContent := strings.Join(msg[1:], " ")
 
 	// check which time is the latest
-	if timestamp > currentTime {
-		currentTime = timestamp
-	} else if timestamp == currentTime {
-		timestamp++
-	} else if timestamp < currentTime {
-		timestamp = currentTime
-	}
+	currentTime = getMAxValue(currentTime, timestamp)
 
 	mutex.Lock()
-	listSnips = append(listSnips, Snip{snipContent, senderAddr, timestamp})
+	listSnips = append(listSnips, Snip{snipContent, senderAddr, currentTime})
 	mutex.Unlock()
 
 	// update last seen
@@ -438,6 +432,15 @@ func storeSnips(command string, senderAddr string) {
 		}
 	}
 
+}
+
+func getMAxValue(val1, val2 int) int {
+	if val1 > val2 {
+		return val1
+	} else if val1 == val2 {
+		return val1 + 1
+	}
+	return val2
 }
 
 func receiveUdpMessage(address string, conn *net.UDPConn) (string, string, error) {
