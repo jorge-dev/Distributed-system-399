@@ -143,6 +143,7 @@ func peerSender(sourceAddress string) {
 				}
 			}
 			fmt.Printf("Number of Peers sent: %d\n", peerCount)
+			peerCount = 0
 			// for i := 0; i < len(listPeers); i++ {
 			// 	if CheckForValidAddress(listPeers[j].peerAddress) {
 			// 		if listPeers[i].peerAddress != sourceAddress {
