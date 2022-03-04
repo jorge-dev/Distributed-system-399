@@ -102,6 +102,7 @@ func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 
 func handleInactivePeers(sourceAddress string) {
 	for {
+
 		time.Sleep(time.Second * 10)
 		// make a copy of the list of peers
 		// listPeersCopy := make([]PeerInfo, len(listPeers))
@@ -117,13 +118,14 @@ func handleInactivePeers(sourceAddress string) {
 					}
 				}
 			}
-			fmt.Printf("Inactive peers removed: %d\n", len(listPeers))
+			fmt.Printf("Inactive peers removed. Peers left %d\n", len(listPeers))
 		}
 		mutex.Unlock()
 	}
 }
 
 func peerSender(sourceAddress string) {
+	peerCount := 0
 	for {
 		time.Sleep(time.Second * 5)
 		mutex.Lock()
@@ -137,8 +139,10 @@ func peerSender(sourceAddress string) {
 				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 					sendMessage(peer.peerAddress, UDP_PEER+" "+randPeer.peerAddress)
 					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
+					peerCount++
 				}
 			}
+			fmt.Printf("Number of Peers sent: %d\n", peerCount)
 			// for i := 0; i < len(listPeers); i++ {
 			// 	if CheckForValidAddress(listPeers[j].peerAddress) {
 			// 		if listPeers[i].peerAddress != sourceAddress {
