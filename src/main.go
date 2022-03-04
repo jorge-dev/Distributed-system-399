@@ -50,6 +50,12 @@ func main() {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
+		err2 := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, ctx)
+		if err2 != nil {
+			fmt.Println("Error: ", err)
+			os.Exit(1)
+		}
+
 		cancel()
 	}()
 
