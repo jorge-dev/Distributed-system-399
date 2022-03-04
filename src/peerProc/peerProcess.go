@@ -64,7 +64,7 @@ func AddPeer(peerAddress string, sourceAddress string) {
 	}
 	listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, time.Now()})
 	mutex.Unlock()
-	fmt.Printf("Peers in the list: %v\n", listPeers)
+	// fmt.Printf("Peers in the list: %v\n", listPeers)
 
 	// mutex.Lock()
 	// listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, time.Now()})
@@ -295,7 +295,7 @@ func storeSnips(command string, senderAddr string) {
 	msg := strings.Split(command, " ")
 	timestamp, _ := strconv.Atoi(msg[0])
 	if len(msg) != 2 {
-		fmt.Println("Invalid snip command")
+		fmt.Printf("Invalid snip command: message: %s%s\n", command, msg)
 		return
 	}
 	// Store the snip to list
