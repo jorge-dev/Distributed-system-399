@@ -3,7 +3,6 @@ package peerProc
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"math/rand"
 	"net"
 	"os"
@@ -84,12 +83,12 @@ func PeerProcess(conn *net.UDPConn, sourceAddress string) {
 
 	go func() {
 		defer wg.Done()
-		snipHandler(sourceAddress)
+		snipHandler(sourceAddress, conn)
 	}()
 
 	go func() {
 		defer wg.Done()
-		peerSender(sourceAddress)
+		peerSender(sourceAddress, conn)
 	}()
 
 	go func() {
@@ -124,7 +123,7 @@ func handleInactivePeers(sourceAddress string) {
 	}
 }
 
-func peerSender(sourceAddress string) {
+func peerSender(sourceAddress string, conn *net.UDPConn) {
 
 	for {
 		time.Sleep(time.Second * 5)
@@ -138,7 +137,7 @@ func peerSender(sourceAddress string) {
 			fmt.Println("Sending peers")
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
-					sendMessage(peer.peerAddress, UDP_PEER+" "+randPeer.peerAddress)
+					sendMessage(peer.peerAddress, UDP_PEER+" "+randPeer.peerAddress, conn)
 					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
 					peerCount++
 				}
@@ -163,7 +162,7 @@ func peerSender(sourceAddress string) {
 
 }
 
-func snipHandler(sourceAddress string) {
+func snipHandler(sourceAddress string, conn *net.UDPConn) {
 	ch := make(chan string)
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -174,12 +173,12 @@ func snipHandler(sourceAddress string) {
 	for {
 		select {
 		case msg := <-ch:
-			sendSnip(msg, sourceAddress)
+			sendSnip(msg, sourceAddress, conn)
 		}
 	}
 }
 
-func sendSnip(msg string, sourceAddress string) {
+func sendSnip(msg string, sourceAddress string, conn *net.UDPConn) {
 	snipCurrentTime := strconv.Itoa(currentTime)
 	msg = "snip" + snipCurrentTime + " " + msg
 	currentTime++
@@ -188,7 +187,7 @@ func sendSnip(msg string, sourceAddress string) {
 	fmt.Println("Sending messages")
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
-			go sendMessage(peer.peerAddress, msg)
+			go sendMessage(peer.peerAddress, msg, conn)
 		} else {
 			fmt.Printf("Invalid peer address %s\n", peer.peerAddress)
 		}
@@ -196,11 +195,13 @@ func sendSnip(msg string, sourceAddress string) {
 	mutex.Unlock()
 }
 
-func sendMessage(peerAddress, msg string) {
-	conn := startUdpClient(peerAddress)
-	defer conn.Close()
+func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
+	// startUdpClient(peerAddress,conn)
+	// defer conn.Close()
 
-	_, err := conn.Write([]byte(msg))
+	udpAdd, err := net.ResolveUDPAddr("udp", peerAddress)
+
+	_, err = conn.WriteToUDP([]byte(msg), udpAdd)
 	if err != nil {
 		fmt.Printf("Error while sending message to %s due to following error: \n %v", peerAddress, err)
 		return
@@ -208,19 +209,18 @@ func sendMessage(peerAddress, msg string) {
 
 }
 
-func startUdpClient(address string) net.Conn {
-	udpAdd, err := net.ResolveUDPAddr("udp", address)
-	if err != nil {
-		log.Fatalf("Error while trying to connect to %s due to following error: \n %v", address, err)
-		return nil
-	}
-	conn, err := net.DialUDP("udp", nil, udpAdd)
-	if err != nil {
-		log.Fatalf("Error while trying to connect to %s due to following error: \n %v", address, err)
-		return nil
-	}
-	return conn
-}
+// func startUdpClient(address string conn *net.UDPConn) {
+// 	udpAdd, err := net.ResolveUDPAddr("udp", address)
+// 	if err != nil {
+// 		log.Fatalf("Error while trying to connect to %s due to following error: \n %v", address, err)
+// 		return nil
+// 	}
+// 	if err != nil {
+// 		log.Fatalf("Error while trying to connect to %s due to following error: \n %v", address, err)
+// 		return nil
+// 	}
+// 	return conn
+// }
 
 func CheckForValidAddress(address string) bool {
 	// check if the host and port are valid
