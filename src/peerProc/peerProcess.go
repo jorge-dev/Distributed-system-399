@@ -424,7 +424,7 @@ func storeSnips(command string, senderAddr string) {
 	}
 
 	mutex.Lock()
-	listSnips = append(listSnips, Snip{snipContent, senderAddr, timestamp})
+	listSnips = append(listSnips, Snip{snipContent, senderAddr, currentTime})
 	mutex.Unlock()
 
 	// update last seen
