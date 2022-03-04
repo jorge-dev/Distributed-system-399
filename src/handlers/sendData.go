@@ -39,7 +39,7 @@ func SendLocation(conn net.Conn, location string) {
 
 func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 	fmt.Println("Server is asking for your report ")
-	fmt.Println("Send it after the Enter key is pressed: ")
+	// fmt.Println("Send it after the Enter key is pressed: ")
 	// bufio.NewReader(os.Stdin).ReadString('\n')
 	report := strconv.Itoa(peers.NumPeers) + "\n"
 	if peers.NumPeers == 0 {

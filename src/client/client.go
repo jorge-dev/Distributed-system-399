@@ -27,13 +27,15 @@ const (
 	UDP_PEER      string = "peer"
 )
 
+var peer sysTypes.Peer
+
 // Creates a new client and attempts to connect to the server
 func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
 	udpSourceAddress := udpHost + ":" + udpPort
-	var peer sysTypes.Peer
+
 	sources := []sysTypes.Source{sysTypes.NewSource(sourceAddress, &peer)}
 
 	// Attempt to connect to the socket
@@ -44,7 +46,7 @@ func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error 
 	}
 
 	// close the connection when the function returns
-	// defer connection.Close()
+	defer connection.Close()
 
 	scanner := bufio.NewScanner(connection)
 	getCodeRequestCounter := 0
@@ -54,6 +56,7 @@ func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error 
 		connection.Close()
 	}()
 
+loop:
 	for {
 		select {
 		case <-ctx.Done():
@@ -64,7 +67,7 @@ func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error 
 
 			if !scanner.Scan() {
 				fmt.Println("Server Disconnected")
-				break
+				break loop
 			}
 
 			switch scanner.Text() {
@@ -93,7 +96,7 @@ func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error 
 			}
 		}
 	}
-
+	return nil
 }
 
 func ConnectUdpServer(host string, port string, ctx context.Context) error {
