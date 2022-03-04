@@ -107,7 +107,7 @@ func handleInactivePeers(sourceAddress string) {
 		// listPeersCopy := make([]PeerInfo, len(listPeers))
 		// copy(listPeersCopy, listPeers)
 		mutex.Lock()
-		fmt.Printf("Peers in the list: %v\n", listPeers)
+		// fmt.Printf("Peers in the list: %v\n", listPeers)
 		if len(listPeers) > 0 {
 			for i := 0; i < len(listPeers); i++ {
 				if listPeers[i].peerAddress != sourceAddress {
@@ -131,7 +131,7 @@ func peerSender(sourceAddress string) {
 			currentTime++
 			// send a random peer to all peers
 			peerlen := len(listPeers)
-			fmt.Printf("Sending peer info to")
+			fmt.Printf("Sending peers")
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 					randPeer := listPeers[rand.Intn(peerlen)]
@@ -181,7 +181,7 @@ func sendSnip(msg string, sourceAddress string) {
 	currentTime++
 	mutex.Lock()
 	// Send the message to all peers
-	fmt.Printf("Sending message to")
+	fmt.Printf("Sending messages")
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) && peer.peerAddress != sourceAddress {
 			go sendMessage(peer.peerAddress, msg)
