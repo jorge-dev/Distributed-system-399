@@ -421,6 +421,8 @@ func storeSnips(command string, senderAddr string) {
 	// check which time is the latest
 	if timestamp > currentTime {
 		currentTime = timestamp
+	} else if timestamp == currentTime {
+		currentTime++
 	}
 
 	mutex.Lock()
