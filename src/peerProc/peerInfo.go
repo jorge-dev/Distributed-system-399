@@ -74,9 +74,9 @@ func PreparelistSentPeerInfoToString() string {
 
 // This function formats the list into a string and returns a list of peers as a string
 func PreparelistPeersToString() string {
-	for _, peer := range listPeers {
-		fmt.Println(peer.peerAddress + "\n" + peer.sourceAddress + "\n" + peer.lastSeen.Format("2006-01-02 15:04:05") + "\n")
-	}
+	// for _, peer := range listPeers {
+	// 	fmt.Println(peer.peerAddress + "\n" + peer.sourceAddress + "\n" + peer.lastSeen.Format("2006-01-02 15:04:05") + "\n")
+	// }
 
 	var numPeers string = strconv.Itoa(len(listPeers))
 	var peerList string = numPeers + "\n"
@@ -93,10 +93,10 @@ func HandleInactivePeers(sourceAddress string, ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(time.Second * 15):
+		case <-time.After(time.Second * 10):
 		}
 
-		mutex.Lock()
+		// mutex.Lock()
 		// fmt.Printf("Peers in the list: %v\n", listPeers)
 		if len(listPeers) > 0 {
 			for i := 0; i < len(listPeers); i++ {
@@ -108,7 +108,7 @@ func HandleInactivePeers(sourceAddress string, ctx context.Context) {
 			}
 			fmt.Printf("Inactive peers removed. Peers left %d\n", len(listPeers))
 		}
-		mutex.Unlock()
+		// mutex.Unlock()
 	}
 }
 

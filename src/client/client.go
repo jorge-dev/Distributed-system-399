@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/handlers"
@@ -32,7 +33,7 @@ var sources []sysTypes.Source
 // Creates a new client and attempts to connect to the server
 func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error {
 	rand.Seed(time.Now().UnixNano())
-	var name string = "Jorge Avila"
+	var name string = "Jorge Avila" + strconv.Itoa(rand.Intn(100))
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
 	udpSourceAddress := udpHost + ":" + udpPort

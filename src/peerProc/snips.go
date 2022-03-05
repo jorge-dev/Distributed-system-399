@@ -31,18 +31,22 @@ func PreparelistSnipsToString() string {
 
 // Handles what happends when you get a snip
 func SnipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
-	ch := make(chan string)
+	// ch := make(chan string, 5)
+	var ch chan string
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
+			fmt.Println("Send snip: ", scanner.Text())
 			ch <- scanner.Text()
 		}
 	}()
 	for {
 		select {
 		case <-ctx.Done():
+			fmt.Println("SnipHandler done")
 			return
 		case msg := <-ch:
+			fmt.Println("Send snip22222: ", msg)
 			sendSnip(msg, sourceAddress, conn)
 		}
 	}
@@ -50,21 +54,20 @@ func SnipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
 
 //Send a snip to the peer
 func sendSnip(msg string, sourceAddress string, conn *net.UDPConn) {
-
 	currentTime++
 	snipCurrentTime := strconv.Itoa(currentTime)
 	msg = "snip" + snipCurrentTime + " " + msg
-	mutex.Lock()
+	// mutex.Lock()
 	// Send the message to all peers
 	// fmt.Println("Sending messages")
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) {
-			go sendMessage(peer.peerAddress, msg, conn)
+			sendMessage(peer.peerAddress, msg, conn)
 		} else {
-
+			fmt.Printf("Invalid address: %s\n", peer.peerAddress)
 		}
 	}
-	mutex.Unlock()
+	// mutex.Unlock()
 }
 
 // After receiving a snip store it for report
