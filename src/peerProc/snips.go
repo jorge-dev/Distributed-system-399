@@ -31,8 +31,8 @@ func PreparelistSnipsToString() string {
 
 // Handles what happends when you get a snip
 func SnipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
-	// ch := make(chan string, 5)
-	var ch chan string
+	ch := make(chan string, 5)
+	// var ch chan string
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
@@ -43,10 +43,9 @@ func SnipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("SnipHandler done")
 			return
 		case msg := <-ch:
-			fmt.Println("Send snip22222: ", msg)
+
 			sendSnip(msg, sourceAddress, conn)
 		}
 	}
