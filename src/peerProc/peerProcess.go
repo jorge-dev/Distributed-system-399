@@ -76,8 +76,8 @@ func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
 // TThis function will try to check if an address is valid by trying to get a response
 func CheckForValidAddress(address string) bool {
 	// check if the host and port are valid
-	_, err := net.ResolveUDPAddr("udp", address)
-	if err != nil {
+
+	if _, err := net.ResolveUDPAddr("udp", address); err != nil {
 		return false
 	}
 	return true
@@ -108,7 +108,10 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 					listPeers[i].lastSeen = time.Now()
 					listPeers[i].isAlive = true
 				}
+
 			}
+
+			// add to list if not found
 
 			// only focus on first 4 characters
 			fmt.Printf("Message received from %s: %s\n", senderAddr, msg)
