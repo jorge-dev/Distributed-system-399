@@ -20,4 +20,5 @@ sourceCode
 # Java
 *.class
 *.log*
+.DS_Store
 .env
