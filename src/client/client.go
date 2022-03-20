@@ -5,8 +5,9 @@ package client
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jorge-dev/Distributed-system-559/src/handlers"
 	"github.com/jorge-dev/Distributed-system-559/src/sysTypes"
