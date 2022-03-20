@@ -34,19 +34,19 @@ type ReceivedPeerinfo struct {
 // Adds a peer to the list of peers
 func AddPeer(peerAddress string, sourceAddress string) {
 	// check if the peer is already in the list
-	mutex.Lock()
+
 	for _, peer := range listPeers {
 		if peer.peerAddress == peerAddress {
-			mutex.Unlock()
+
 			return
 		} else if peer.sourceAddress == peerAddress {
-			mutex.Unlock()
+
 			return
 		} else if peer.sourceAddress == sourceAddress {
-			mutex.Unlock()
 			return
 		}
 	}
+	mutex.Lock()
 	listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, true, time.Now()})
 	mutex.Unlock()
 
@@ -103,10 +103,11 @@ func HandleInactivePeers(sourceAddress string, ctx context.Context) {
 				if listPeers[i].peerAddress != sourceAddress {
 					if time.Since(listPeers[i].lastSeen) > time.Second*10 {
 						listPeers[i].isAlive = false
+						fmt.Printf("Peer %v is inactive\n", listPeers[i].peerAddress)
 					}
 				}
 			}
-			fmt.Printf("Inactive peers removed. Peers left %d\n", len(listPeers))
+			// fmt.Printf("Inactive peers removed. Peers left %d\n", len(listPeers))
 		}
 		// mutex.Unlock()
 	}
@@ -124,7 +125,6 @@ func MulticastMessage(sourceAddress string, conn *net.UDPConn, context context.C
 
 		}
 
-		mutex.Lock()
 		if len(listPeers) > 0 {
 			peerCount := 0
 
@@ -141,13 +141,15 @@ func MulticastMessage(sourceAddress string, conn *net.UDPConn, context context.C
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.isAlive {
 					sendMessage(peer.peerAddress, UDP_PEER+randPeer.peerAddress, conn)
+					mutex.Lock()
 					listSentPeerInfo = append(listSentPeerInfo, SentPeerInfo{peer.peerAddress, peer.peerAddress, time.Now()})
+					mutex.Unlock()
 					peerCount++
 				}
 			}
 
 		}
-		mutex.Unlock()
+
 	}
 
 }
@@ -196,8 +198,10 @@ func StorePeers(peerAddr string, senderAddr string) {
 	} else if peerIndex != -1 && sourceIndex == -1 && CheckForValidAddress(peerAddr) {
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{senderAddr, senderAddr, true, time.Now()})
+		mutex.Unlock()
 	}
-
+	mutex.Lock()
 	listReceivedPeerinfo = append(listReceivedPeerinfo, ReceivedPeerinfo{peerAddr, senderAddr, time.Now()})
+	mutex.Unlock()
 
 }

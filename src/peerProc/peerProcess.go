@@ -70,6 +70,7 @@ func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
 		fmt.Printf("Error while sending message to %s due to following error: \n %v", peerAddress, err)
 		return
 	}
+	fmt.Printf("Message sent to %s: %s\n", peerAddress, msg)
 
 }
 
@@ -108,11 +109,9 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 					listPeers[i].lastSeen = time.Now()
 					listPeers[i].isAlive = true
 				}
+				AddPeer(senderAddr, sourceAddress)
 
 			}
-
-			// add to list if not found
-
 			// only focus on first 4 characters
 			fmt.Printf("Message received from %s: %s\n", senderAddr, msg)
 			if len(msg) >= 4 {
