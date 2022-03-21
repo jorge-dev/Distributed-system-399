@@ -93,7 +93,7 @@ func main() {
 	// connect to the server
 	go func() {
 		defer wg.Done()
-		err := client.ConnectTCP(tcpAddr, udpAddr)
+		err := client.Connect(tcpAddr, udpAddr)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)

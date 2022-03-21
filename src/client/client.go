@@ -23,10 +23,10 @@ const (
 )
 
 // Creates a new client and attempts to connect to the server
-func Connect(host string, port string) error {
+func Connect(sourceAddress string) error {
 
 	//Save the host and port as a full address and initialize variables
-	sourceAddress := host + ":" + port
+	// sourceAddress := host + ":" + port
 	var peer sysTypes.Peer
 	sources := []sysTypes.Source{sysTypes.NewSource(sourceAddress, &peer)}
 
