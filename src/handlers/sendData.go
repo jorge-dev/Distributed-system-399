@@ -96,7 +96,7 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 			report += peer + "\n"
 		}
 		// report += peerProc.PreparelistPeersToString()
-		// report += peerProc.PreparelistReceivedPeerInfoToString()
+		// report += peerProc.PreparelistreceivedPeerInfoToString()
 		// report += peerProc.PreparelistSentPeerInfoToString()
 		// report += peerProc.PreparelistSnipsToString()
 		// fmt.Printf("\nReport: %s\n", report)

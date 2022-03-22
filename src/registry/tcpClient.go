@@ -46,7 +46,7 @@ func NewClient(tcpAddress, udpAddress, team string) *Client {
 	return &client
 }
 
-func (c *Client) Start(ctx context.Context) error {
+func (c *Client) Start(peerInfo *sysTypes.PeerInfo, snips *sysTypes.Snips, ctx context.Context) error {
 	tcpProto := protocols.NewTCP(c.tcpAddr)
 	var err error
 
@@ -63,7 +63,7 @@ func (c *Client) Start(ctx context.Context) error {
 
 	// Init a client context
 	clientCtx, cancel := context.WithCancel(ctx)
-	c.requestManager(clientCtx, cancel)
+	c.requestManager(clientCtx, cancel, peerInfo)
 
 	return nil
 
@@ -72,7 +72,7 @@ func (c *Client) Start(ctx context.Context) error {
 var peer sysTypes.Peer
 var sources []sysTypes.Source
 
-func (c *Client) requestManager(ctx context.Context, cancel context.CancelFunc) {
+func (c *Client) requestManager(ctx context.Context, cancel context.CancelFunc, peerInfo *sysTypes.PeerInfo) {
 	sources = []sysTypes.Source{sysTypes.NewSource(c.tcpAddr, &peer)}
 	scanner := bufio.NewScanner(c.connection)
 	wg.Add(1)
@@ -109,10 +109,10 @@ mainLoop:
 				handlers.SendCode(c.connection, getCodeRequestCounter)
 				getCodeRequestCounter++
 
-			// case GET_LOCATION:
-			// 	handlers.SendLocation(c.connection, c.udpAddr)
+			case GET_LOCATION:
+				handlers.SendLocation(c.connection, c.udpAddr)
 			case RECEIVE_PEERS:
-				peer = handlers.ReceivePeers(scanner, &sources[0])
+				peer = handlers.ReceivePeers(scanner, &sources[0], peerInfo)
 			case GET_REPORT:
 				handlers.SendReport(c.connection, peer, sources)
 				fmt.Println("Report sent")

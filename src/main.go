@@ -11,6 +11,7 @@ import (
 	"github.com/jorge-dev/Distributed-system-559/src/common"
 	peercommunicator "github.com/jorge-dev/Distributed-system-559/src/peerCommunicator"
 	"github.com/jorge-dev/Distributed-system-559/src/registry"
+	"github.com/jorge-dev/Distributed-system-559/src/sysTypes"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,38 +45,38 @@ func main() {
 	// initialize variables
 	// peer := sysTypes.NewPeer(nil, 0)
 	// sources := []sysTypes.Source{sysTypes.NewSource(tcpAddr, &peer)}
-
+	peerUdpCommunicator := peercommunicator.NewPeerCommunicator(udpAddr)
 	registryClient := registry.NewClient(tcpAddr, udpAddr, teamName)
-	// peerUdpCommunicator := peercommunicator.NewPeerCommunicator(udpAddr)
-	// Init context and cancel
+	peerInfo := sysTypes.NewPeerInfo()
+	snips := sysTypes.NewSnips()
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start the tcp registry
 	wg.Add(1)
-	go startTCPRegistry(registryClient, ctx)
+	go startTCPRegistry(registryClient, peerInfo, snips, ctx)
 	waitToExit(ctx, cancel)
 
-	// // Start the udp registry
-	// wg.Add(1)
-	// go startUdpPeer(peerUdpCommunicator, ctx)
-	// waitToExit(ctx, cancel)
+	// Start the udp registry
+	wg.Add(1)
+	go startUdpPeer(peerUdpCommunicator, peerInfo, snips, ctx)
+	waitToExit(ctx, cancel)
 
 	log.Info("Program is shutting down")
 
 }
 
-func startTCPRegistry(reg *registry.Client, ctx context.Context) {
+func startTCPRegistry(reg *registry.Client, peerInfo *sysTypes.PeerInfo, snips *sysTypes.Snips, ctx context.Context) {
 	defer wg.Done()
 	// Start the TCP server
-	if err := reg.Start(ctx); err != nil {
+	if err := reg.Start(peerInfo, snips, ctx); err != nil {
 		log.Errorf("Error while trying to start the TCP server due to following error: \n %v", err)
 	}
 }
 
-func startUdpPeer(udpPeer peercommunicator.PeerCommunicator, ctx context.Context) {
+func startUdpPeer(udpPeer peercommunicator.PeerCommunicator, peerInfo *sysTypes.PeerInfo, snips *sysTypes.Snips, ctx context.Context) {
 	defer wg.Done()
 	// Start the UDP server
-	if err := udpPeer.Start(ctx); err != nil {
+	if err := udpPeer.Start(peerInfo, snips, ctx); err != nil {
 		log.Errorf("Error while trying to start the UDP server due to following error: \n %v", err)
 	}
 }
