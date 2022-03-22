@@ -2,102 +2,112 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"sync"
 
-	"github.com/joho/godotenv"
-	"github.com/jorge-dev/Distributed-system-559/src/client"
+	"github.com/jorge-dev/Distributed-system-559/src/common"
+	peercommunicator "github.com/jorge-dev/Distributed-system-559/src/peerCommunicator"
+	"github.com/jorge-dev/Distributed-system-559/src/registry"
 	log "github.com/sirupsen/logrus"
 )
-
-func getEnvVariable(key string) string {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Fatalf("Error loading .env file. Error: %v", err)
-		return ""
-	}
-	return os.Getenv(key)
-}
-
-func getlogLevel() log.Level {
-
-	logLevel := getEnvVariable("LOG_LEVEL")
-
-	switch logLevel {
-	case "debug":
-		fmt.Println("Log level set to debug")
-		return log.DebugLevel
-	case "info":
-		fmt.Println("Log level set to info")
-		return log.InfoLevel
-	case "warn":
-		fmt.Println("Log level set to warn")
-		return log.WarnLevel
-	case "error":
-		fmt.Println("Log level set to error")
-		return log.ErrorLevel
-	case "fatal":
-		fmt.Println("Log level set to fatal")
-		return log.FatalLevel
-	case "panic":
-		fmt.Println("Log level set to panic")
-		return log.PanicLevel
-	default:
-		fmt.Println("Log level set to info")
-		return log.InfoLevel
-	}
-
-}
-
-func getIPAddress(flag, udpPort string) (string, string) {
-	if flag == "--test" || flag == "-t" {
-		testTcpAddr := getEnvVariable("TEST_HOST") + ":" + getEnvVariable("TEST_PORT")
-		testUdpAddr := getEnvVariable("TEST_HOST") + ":" + udpPort
-		return testTcpAddr, testUdpAddr
-	}
-	submissionTcpAddr := getEnvVariable("REGISTRY_HOST") + ":" + getEnvVariable("REGISTRY_PORT")
-	submissionUdpAddr := getEnvVariable("REGISTRY_HOST") + ":" + udpPort
-	return submissionTcpAddr, submissionUdpAddr
-
-}
 
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
 	log.SetOutput(os.Stdout)
-	log.SetLevel(getlogLevel())
+	log.SetLevel(common.GetlogLevel())
 }
+
+var wg sync.WaitGroup
 
 func main() {
 
 	// get host and port from command line
 	args := os.Args[1:]
 	if len(args) != 2 {
-		fmt.Println("Usage: go run main.go <udpPort> <[-t | --test] || [--registry | -r]>")
+		fmt.Println("Usage: go run main.go <udpPort> <flag>")
 		os.Exit(1)
 
 	}
-
-	// tcpHost := args[0]
-	// tcpPort := args[1]
-
-	// udpHost := args[2]
+	// get commandline args
 	udpPort := args[0]
 	flag := args[1]
 
-	tcpAddr, udpAddr := getIPAddress(flag, udpPort)
+	// initialize the tcp, udp address and team name
+	tcpAddr, udpAddr, teamName := common.GetIpAndTeam(flag, udpPort)
+	log.WithField("tcpAddr", tcpAddr).WithField("udpAddr", udpAddr).WithField("teamName", teamName).Info("Starting client")
 
-	log.WithField("tcpAddr", tcpAddr).WithField("udpAddr", udpAddr).Info("Connecting to the server")
+	// initialize variables
+	// peer := sysTypes.NewPeer(nil, 0)
+	// sources := []sysTypes.Source{sysTypes.NewSource(tcpAddr, &peer)}
 
-	// connect to the server
+	registryClient := registry.NewClient(tcpAddr, udpAddr, teamName)
+	// peerUdpCommunicator := peercommunicator.NewPeerCommunicator(udpAddr)
+	// Init context and cancel
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Start the tcp registry
+	wg.Add(1)
+	go startTCPRegistry(registryClient, ctx)
+	waitToExit(ctx, cancel)
+
+	// // Start the udp registry
+	// wg.Add(1)
+	// go startUdpPeer(peerUdpCommunicator, ctx)
+	// waitToExit(ctx, cancel)
+
+	log.Info("Program is shutting down")
+
+}
+
+func startTCPRegistry(reg *registry.Client, ctx context.Context) {
+	defer wg.Done()
+	// Start the TCP server
+	if err := reg.Start(ctx); err != nil {
+		log.Errorf("Error while trying to start the TCP server due to following error: \n %v", err)
+	}
+}
+
+func startUdpPeer(udpPeer peercommunicator.PeerCommunicator, ctx context.Context) {
+	defer wg.Done()
+	// Start the UDP server
+	if err := udpPeer.Start(ctx); err != nil {
+		log.Errorf("Error while trying to start the UDP server due to following error: \n %v", err)
+	}
+}
+
+func waitToExit(ctx context.Context, cancel context.CancelFunc) {
+	killReceived := false
+	killChannel := make(chan os.Signal, 1)
+	signal.Notify(killChannel, os.Interrupt)
+
+	// channel to wait for completion
+	waitChannel := make(chan struct{})
+
 	go func() {
-		defer wg.Done()
-		err := client.Connect(tcpAddr, udpAddr)
-		if err != nil {
-			fmt.Println("Error: ", err)
-			os.Exit(1)
-		}
+		wg.Wait()
+		close(waitChannel)
 	}()
+
+	select {
+	case <-killChannel:
+		log.Fatal("Received kill signal, program is shutting down")
+		cancel()
+		killReceived = true
+	case <-waitChannel:
+	case <-ctx.Done():
+	}
+
+	wg.Wait()
+
+	if killReceived {
+		log.Warn("Program being killed by OS signal")
+		os.Exit(23)
+
+	}
 
 }
