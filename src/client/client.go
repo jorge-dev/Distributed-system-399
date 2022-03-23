@@ -7,10 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
-	"strconv"
-	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/handlers"
 	"github.com/jorge-dev/Distributed-system-559/src/peerProc"
@@ -31,9 +28,8 @@ var peer sysTypes.Peer
 var sources []sysTypes.Source
 
 // Creates a new client and attempts to connect to the server
-func ConnectTCP(host, port, udpHost, udpPort string, ctx context.Context) error {
-	rand.Seed(time.Now().UnixNano())
-	var name string = "Jorge Avila" + strconv.Itoa(rand.Intn(100))
+func ConnectTCP(host, port, udpHost, udpPort, name string, ctx context.Context) error {
+
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
 	udpSourceAddress := udpHost + ":" + udpPort

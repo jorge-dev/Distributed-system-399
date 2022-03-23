@@ -4,15 +4,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/client"
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	// get host and port from command line
 	args := os.Args[1:]
 	if len(args) != 4 {
@@ -27,6 +31,7 @@ func main() {
 	udpHost := args[2]
 	udpPort := args[3]
 
+	var teamName string = "Jorge Avila" + strconv.Itoa(rand.Intn(1000))
 	ctx, cancel := context.WithCancel(context.Background())
 
 	wg := sync.WaitGroup{}
@@ -35,7 +40,7 @@ func main() {
 	// connect to the server
 	go func() {
 		defer wg.Done()
-		err := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, ctx)
+		err := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, teamName, ctx)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
@@ -51,7 +56,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("UDP server started")
-		err2 := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, ctx)
+		err2 := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, teamName, ctx)
 		if err2 != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
