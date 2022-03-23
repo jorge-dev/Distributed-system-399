@@ -59,9 +59,12 @@ func sendSnip(msg string, sourceAddress string, conn *net.UDPConn) {
 	// mutex.Lock()
 	// Send the message to all peers
 	// fmt.Println("Sending messages")
+
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) {
-			sendMessage(peer.peerAddress, msg, conn)
+			if peer.isAlive {
+				sendMessage(peer.peerAddress, msg, conn)
+			}
 		} else {
 			fmt.Printf("Invalid address: %s\n", peer.peerAddress)
 		}

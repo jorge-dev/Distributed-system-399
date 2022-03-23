@@ -29,7 +29,7 @@ var mainUdpAddress string
 // Handles the UDP responsability concurrently
 func PeerProcess(conn *net.UDPConn, sourceAddress string, ctx context.Context) {
 	mainUdpAddress = sourceAddress
-	listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, true, time.Now()})
+	// listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, true, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
 	childCtx, cancel := context.WithCancel(ctx)
@@ -70,7 +70,7 @@ func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
 		fmt.Printf("Error while sending message to %s due to following error: \n %v", peerAddress, err)
 		return
 	}
-	fmt.Printf("Message sent to %s: %s\n", peerAddress, msg)
+	// fmt.Printf("Message sent to %s: %s\n", peerAddress, msg)
 
 }
 
@@ -109,11 +109,11 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 					listPeers[i].lastSeen = time.Now()
 					listPeers[i].isAlive = true
 				}
-				AddPeer(senderAddr, sourceAddress)
+				// AddPeer(senderAddr, sourceAddress)
 
 			}
 			// only focus on first 4 characters
-			fmt.Printf("Message received from %s: %s\n", senderAddr, msg)
+			// fmt.Pcrintf("Message received from %s: %s\n", senderAddr, msg)
 			if len(msg) >= 4 {
 				switch msg[:4] {
 				case UDP_STOP:
@@ -126,7 +126,7 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 					command := strings.Trim(msg[4:], "\n")
 					go storeSnips(command, senderAddr)
 				case UDP_PEER:
-					fmt.Println("Peer info received")
+					// fmt.Println("Peer info received")
 					peerAddr := strings.Trim(msg[4:], "\n")
 					go StorePeers(peerAddr, senderAddr)
 				default:
