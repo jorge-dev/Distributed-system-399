@@ -27,16 +27,17 @@ var currentTime int = 0
 var mainUdpAddress string
 
 // Handles the UDP responsability concurrently
-func PeerProcess(conn *net.UDPConn, sourceAddress string, ctx context.Context) {
+func PeerProcess(conn *net.UDPConn, teamName, sourceAddress string, ctx context.Context) {
 	mainUdpAddress = sourceAddress
 	// listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, true, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
 	childCtx, cancel := context.WithCancel(ctx)
+	stopMessageCtX, stopMessageCancel := context.WithCancel(ctx)
 	wg.Add(4)
 	go func() {
 		defer wg.Done()
-		messageHandler(conn, sourceAddress, childCtx, cancel)
+		messageHandler(conn, teamName, sourceAddress, stopMessageCtX, stopMessageCancel, cancel)
 	}()
 
 	go func() {
@@ -85,16 +86,16 @@ func CheckForValidAddress(address string) bool {
 }
 
 // This function handles the UDP messages commands
-func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context, cancel context.CancelFunc) {
-
+func messageHandler(conn *net.UDPConn, teamName, sourceAddress string, msgCtx context.Context, msgCancel, cancel context.CancelFunc) {
 	go func() {
-		<-ctx.Done()
+		<-msgCtx.Done()
 		conn.Close()
+
 	}()
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-msgCtx.Done():
 			fmt.Println("Closing the connection")
 			return
 		default:
@@ -118,8 +119,13 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 				switch msg[:4] {
 				case UDP_STOP:
 					fmt.Println("Stopping UDP server")
-					conn.Close()
+
+					ackMsg := "ack" + teamName
+					sendMessage(senderAddr, ackMsg, conn)
 					cancel()
+					time.Sleep(time.Second * 5)
+					conn.Close()
+					msgCancel()
 					return
 				case UDP_SNIP:
 					fmt.Printf("Receiving Snip: %s\n", msg)
@@ -150,7 +156,11 @@ func getMAxValue(val1, val2 int) int {
 
 // Handles messages received from other peers
 func receiveUdpMessage(address string, conn *net.UDPConn) (string, string, error) {
-
+	// err := conn.SetDeadline(time.Now().Add(time.Second * 10))
+	// if err != nil {
+	// 	fmt.Println("Error while setting deadline: ", err)
+	// 	return "", "", err
+	// }
 	// Read from the connection
 	data := make([]byte, 1024)
 	len, addr, err := conn.ReadFromUDP(data)
