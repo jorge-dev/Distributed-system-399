@@ -98,7 +98,7 @@ loop:
 	}
 	return nil
 }
-func ConnectUdpServer(host string, port string, ctx context.Context) error {
+func ConnectUdpServer(teamName, host string, port string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
 	sourceAddress := host + ":" + port
@@ -118,7 +118,7 @@ func ConnectUdpServer(host string, port string, ctx context.Context) error {
 	}
 
 	// Call the peer process
-	peerProc.PeerProcess(conn, sourceAddress, ctx)
+	peerProc.PeerProcess(conn, teamName, sourceAddress, ctx)
 	return err
 
 }
