@@ -35,17 +35,17 @@ type ReceivedPeerinfo struct {
 func AddPeer(peerAddress string, sourceAddress string) {
 	// check if the peerAddress is already in the list
 	if PeerListIndexLookUp(peerAddress) == -1 {
-		fmt.Println("Adding peer with peerAddress " + peerAddress)
+		// fmt.Println("Adding peer with peerAddress " + peerAddress)
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, true, time.Now()})
 		mutex.Unlock()
-		fmt.Printf("=========================\nPeer list: %v\n==========================\n", listPeers)
+		// fmt.Printf("=========================\nPeer list: %v\n==========================\n", listPeers)
 	} else if PeerListIndexLookUp(sourceAddress) == -1 {
-		fmt.Println("Adding peer with SourceAddress" + sourceAddress)
+		// fmt.Println("Adding peer with SourceAddress" + sourceAddress)
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, true, time.Now()})
 		mutex.Unlock()
-		fmt.Printf("==========================\nPeer list: %v\n==========================\n", listPeers)
+		// fmt.Printf("==========================\nPeer list: %v\n==========================\n", listPeers)
 
 	}
 
@@ -171,15 +171,15 @@ func MulticastMessage(sourceAddress string, conn *net.UDPConn, context context.C
 // Handy function to check it a peerAddress is in the list
 func PeerListIndexLookUp(peerAddr string) int {
 	for i := 0; i < len(listPeers); i++ {
-		fmt.Println("==========================")
-		fmt.Printf("listPeers[%d].peerAddress: %v\n", i, listPeers[i].peerAddress)
-		fmt.Printf("Peer address: %v\n", peerAddr)
+		// fmt.Println("==========================")
+		// fmt.Printf("listPeers[%d].peerAddress: %v\n", i, listPeers[i].peerAddress)
+		// fmt.Printf("Peer address: %v\n", peerAddr)
 
 		if listPeers[i].peerAddress == peerAddr {
-			fmt.Printf("\nFound peer address to be in list: %v\n", peerAddr)
+			// fmt.Printf("\nFound peer address to be in list: %v\n", peerAddr)
 			return i
 		}
-		fmt.Println("==========================")
+		// fmt.Println("==========================")
 
 	}
 	return -1

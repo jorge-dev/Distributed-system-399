@@ -122,7 +122,7 @@ func messageHandler(conn *net.UDPConn, sourceAddress string, ctx context.Context
 					cancel()
 					return
 				case UDP_SNIP:
-					fmt.Println("Receiving Snips")
+					fmt.Printf("Receiving Snip: %s\n", msg)
 					command := strings.Trim(msg[4:], "\n")
 					go storeSnips(command, senderAddr)
 				case UDP_PEER:

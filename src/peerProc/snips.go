@@ -53,13 +53,15 @@ func SnipHandler(sourceAddress string, conn *net.UDPConn, ctx context.Context) {
 
 //Send a snip to the peer
 func sendSnip(msg string, sourceAddress string, conn *net.UDPConn) {
+	fmt.Printf("About to send a snip with the current time: %d\n", currentTime)
 	currentTime++
+	fmt.Printf("Changed current time to: %d\n", currentTime)
 	snipCurrentTime := strconv.Itoa(currentTime)
 	msg = "snip" + snipCurrentTime + " " + msg
 	// mutex.Lock()
 	// Send the message to all peers
 	// fmt.Println("Sending messages")
-
+	fmt.Printf("Sending snip to all peers: %s\n", msg)
 	for _, peer := range listPeers {
 		if CheckForValidAddress(peer.peerAddress) {
 			if peer.isAlive {
@@ -89,7 +91,7 @@ func storeSnips(command string, senderAddr string) {
 	snipContent := strings.Join(msg[1:], " ")
 
 	// check which time is the latest
-	if senderAddr != mainUdpAddress {
+	if currentTime != timestamp {
 		currentTime = getMAxValue(currentTime, timestamp)
 	}
 	mutex.Lock()
