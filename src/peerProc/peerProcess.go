@@ -29,7 +29,6 @@ var mainUdpAddress string
 // Handles the UDP responsability concurrently
 func PeerProcess(conn *net.UDPConn, teamName, sourceAddress string, ctx context.Context) {
 	mainUdpAddress = sourceAddress
-	// listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, true, time.Now()})
 	fmt.Printf("Peer Party Started at %s\n", sourceAddress)
 	wg := sync.WaitGroup{}
 	childCtx, cancel := context.WithCancel(ctx)
@@ -71,14 +70,11 @@ func sendMessage(peerAddress, msg string, conn *net.UDPConn) {
 		fmt.Printf("Error while sending message to %s due to following error: \n %v", peerAddress, err)
 		return
 	}
-	// fmt.Printf("Message sent to %s: %s\n", peerAddress, msg)
 
 }
 
-// TThis function will try to check if an address is valid by trying to get a response
+// This function will try to check if an address is valid by trying to get a response
 func CheckForValidAddress(address string) bool {
-	// check if the host and port are valid
-
 	if _, err := net.ResolveUDPAddr("udp", address); err != nil {
 		return false
 	}
@@ -110,21 +106,16 @@ func messageHandler(conn *net.UDPConn, teamName, sourceAddress string, msgCtx co
 					listPeers[i].lastSeen = time.Now()
 					listPeers[i].isAlive = true
 				}
-				// AddPeer(senderAddr, sourceAddress)
 
 			}
 			// only focus on first 4 characters
-			// fmt.Pcrintf("Message received from %s: %s\n", senderAddr, msg)
 			if len(msg) >= 4 {
 				switch msg[:4] {
 				case UDP_STOP:
 					fmt.Println("Received First stop message from ", senderAddr)
 
 					cancel()
-					handleStopAck(senderAddr, teamName, conn)
-
-					// time.Sleep(time.Second * 5)
-					// conn.Close()
+					sendStopAck(senderAddr, teamName, conn)
 					msgCancel()
 					return
 				case UDP_SNIP:
@@ -132,7 +123,6 @@ func messageHandler(conn *net.UDPConn, teamName, sourceAddress string, msgCtx co
 					command := strings.Trim(msg[4:], "\n")
 					go storeSnips(command, senderAddr)
 				case UDP_PEER:
-					// fmt.Println("Peer info received")
 					peerAddr := strings.Trim(msg[4:], "\n")
 					go StorePeers(peerAddr, senderAddr)
 				default:
@@ -146,7 +136,7 @@ func messageHandler(conn *net.UDPConn, teamName, sourceAddress string, msgCtx co
 	}
 }
 
-func handleStopAck(senderAddr, teamName string, conn *net.UDPConn) {
+func sendStopAck(senderAddr, teamName string, conn *net.UDPConn) {
 	stopMsgCount := 1
 	ackMsg := "ack" + teamName
 	fmt.Println("Sending ack to ", senderAddr)

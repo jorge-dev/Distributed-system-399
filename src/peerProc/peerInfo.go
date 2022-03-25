@@ -35,34 +35,17 @@ type ReceivedPeerinfo struct {
 func AddPeer(peerAddress string, sourceAddress string) {
 	// check if the peerAddress is already in the list
 	if PeerListIndexLookUp(peerAddress) == -1 {
-		// fmt.Println("Adding peer with peerAddress " + peerAddress)
+		fmt.Println("Adding peer with peerAddress " + peerAddress)
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, true, time.Now()})
 		mutex.Unlock()
-		// fmt.Printf("=========================\nPeer list: %v\n==========================\n", listPeers)
 	} else if PeerListIndexLookUp(sourceAddress) == -1 {
-		// fmt.Println("Adding peer with SourceAddress" + sourceAddress)
+		fmt.Println("Adding peer with SourceAddress" + sourceAddress)
 		mutex.Lock()
 		listPeers = append(listPeers, PeerInfo{sourceAddress, sourceAddress, true, time.Now()})
 		mutex.Unlock()
-		// fmt.Printf("==========================\nPeer list: %v\n==========================\n", listPeers)
 
 	}
-
-	// for _, peer := range listPeers {
-	// 	if peer.peerAddress == peerAddress {
-
-	// 		return
-	// 	} else if peer.sourceAddress == peerAddress {
-
-	// 		return
-	// 	} else if peer.sourceAddress == sourceAddress {
-	// 		return
-	// 	}
-	// }
-	// mutex.Lock()
-	// listPeers = append(listPeers, PeerInfo{peerAddress, sourceAddress, true, time.Now()})
-	// mutex.Unlock()
 
 }
 
@@ -88,9 +71,6 @@ func PreparelistSentPeerInfoToString() string {
 
 // This function formats the list into a string and returns a list of peers as a string
 func PreparelistPeersToString() string {
-	// for _, peer := range listPeers {
-	// 	fmt.Println(peer.peerAddress + "\n" + peer.sourceAddress + "\n" + peer.lastSeen.Format("2006-01-02 15:04:05") + "\n")
-	// }
 
 	var numPeers string = strconv.Itoa(len(listPeers))
 	var peerList string = numPeers + "\n"
@@ -107,23 +87,21 @@ func HandleInactivePeers(sourceAddress string, ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(time.Second * 10):
+		case <-time.After(time.Second * 90):
 		}
 
-		// mutex.Lock()
-		// fmt.Printf("Peers in the list: %v\n", listPeers)
+		mutex.Lock()
 		if len(listPeers) > 0 {
 			for i := 0; i < len(listPeers); i++ {
 				if listPeers[i].peerAddress != sourceAddress {
-					if time.Since(listPeers[i].lastSeen) > time.Second*10 {
+					if time.Since(listPeers[i].lastSeen) > time.Second*90 {
 						listPeers[i].isAlive = false
-						fmt.Printf("Peer %v is inactive\n", listPeers[i].peerAddress)
+						fmt.Printf("No communication from peer %v in the last minute and a half.Peer is now inactive\n", listPeers[i].peerAddress)
 					}
 				}
 			}
-			// fmt.Printf("Inactive peers removed. Peers left %d\n", len(listPeers))
 		}
-		// mutex.Unlock()
+		mutex.Unlock()
 	}
 }
 
@@ -151,7 +129,6 @@ func MulticastMessage(sourceAddress string, conn *net.UDPConn, context context.C
 				}
 			}
 
-			// fmt.Println("Sending peers")
 			for _, peer := range listPeers {
 				if CheckForValidAddress(peer.peerAddress) && peer.isAlive {
 					sendMessage(peer.peerAddress, UDP_PEER+randPeer.peerAddress, conn)
@@ -171,56 +148,15 @@ func MulticastMessage(sourceAddress string, conn *net.UDPConn, context context.C
 // Handy function to check it a peerAddress is in the list
 func PeerListIndexLookUp(peerAddr string) int {
 	for i := 0; i < len(listPeers); i++ {
-		// fmt.Println("==========================")
-		// fmt.Printf("listPeers[%d].peerAddress: %v\n", i, listPeers[i].peerAddress)
-		// fmt.Printf("Peer address: %v\n", peerAddr)
-
 		if listPeers[i].peerAddress == peerAddr {
-			// fmt.Printf("\nFound peer address to be in list: %v\n", peerAddr)
 			return i
 		}
-		// fmt.Println("==========================")
-
 	}
 	return -1
-
-}
-
-// Handy function to check it a peerSource is in the list
-func PeerSourceListIndexLookUp(peerSrc string) int {
-	for i := 0; i < len(listPeers); i++ {
-		if listPeers[i].sourceAddress == peerSrc {
-			return i
-		}
-
-	}
-	return -1
-
 }
 
 // When a peer is received is stores it in the list of peers
 func StorePeers(peerAddr string, senderAddr string) {
-	// Get the peer and source index
-	// peerIndex := PeerListIndexLookUp(peerAddr)
-	// sourceIndex := PeerSourceListIndexLookUp(senderAddr)
-
-	// // If the peer is not in the list, add it
-	// if peerIndex == -1 && sourceIndex == -1 && CheckForValidAddress(peerAddr) {
-	// 	mutex.Lock()
-	// 	listPeers = append(listPeers, PeerInfo{peerAddr, senderAddr, true, time.Now()})
-	// 	mutex.Unlock()
-	// 	fmt.Printf("New peer added: %s\n", peerAddr)
-	// } else if peerIndex == -1 && sourceIndex != -1 && CheckForValidAddress(peerAddr) {
-	// 	mutex.Lock()
-	// 	listPeers = append(listPeers, PeerInfo{peerAddr, peerAddr, true, time.Now()})
-	// 	mutex.Unlock()
-	// 	fmt.Printf("New peer added: %s\n", peerAddr)
-	// } else if peerIndex != -1 && sourceIndex == -1 && CheckForValidAddress(peerAddr) {
-	// 	mutex.Lock()
-	// 	listPeers = append(listPeers, PeerInfo{senderAddr, senderAddr, true, time.Now()})
-	// 	mutex.Unlock()
-	// }
-
 	AddPeer(peerAddr, senderAddr)
 	mutex.Lock()
 	listReceivedPeerinfo = append(listReceivedPeerinfo, ReceivedPeerinfo{peerAddr, senderAddr, time.Now()})

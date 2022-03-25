@@ -16,8 +16,6 @@ func ReceivePeers(scanner *bufio.Scanner, source *sysTypes.Source) sysTypes.Peer
 	var peer sysTypes.Peer = sysTypes.NewPeer(nil, 0)
 	source.UpdateTimeStamp()
 	fmt.Println("Server is sending a list of peers")
-	// fmt.Println("Receive it after the Enter key is pressed: ")
-	// bufio.NewReader(os.Stdin).ReadString('\n')
 
 	scanner.Scan()
 	num, _ := strconv.Atoi(scanner.Text())
