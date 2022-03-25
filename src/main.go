@@ -58,12 +58,13 @@ func main() {
 	// connect to the Udp server
 	go func() {
 		defer wg.Done()
+		fmt.Println("UDP server started")
 		err := client.ConnectUdpServer(teamName, udpAddr, ctx)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
-		fmt.Println("UDP server started")
+
 		err2 := client.ConnectTCP(tcpAddr, udpAddr, teamName, ctx)
 		if err2 != nil {
 			fmt.Println("Error: ", err)
