@@ -28,11 +28,11 @@ var peer sysTypes.Peer
 var sources []sysTypes.Source
 
 // Creates a new client and attempts to connect to the server
-func ConnectTCP(host, port, udpHost, udpPort, name string, ctx context.Context) error {
+func ConnectTCP(sourceAddress, udpSourceAddress, name string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
-	sourceAddress := host + ":" + port
-	udpSourceAddress := udpHost + ":" + udpPort
+	// sourceAddress := host + ":" + port
+	// udpSourceAddress := udpHost + ":" + udpPort
 
 	sources = []sysTypes.Source{sysTypes.NewSource(sourceAddress, &peer)}
 
@@ -98,10 +98,10 @@ loop:
 	}
 	return nil
 }
-func ConnectUdpServer(teamName, host string, port string, ctx context.Context) error {
+func ConnectUdpServer(teamName, sourceAddress string, ctx context.Context) error {
 
 	//Save the host and port as a full address and initialize variables
-	sourceAddress := host + ":" + port
+	// sourceAddress := host + ":" + port
 
 	fmt.Printf("Initializing UDP server on %s\n", sourceAddress)
 	udpAddr, err := net.ResolveUDPAddr("udp", sourceAddress)
