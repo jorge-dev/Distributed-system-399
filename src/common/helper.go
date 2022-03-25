@@ -71,6 +71,7 @@ func PrintAllFiles(dir string, didPrint bool) string {
 	return code
 }
 
+// Reads the environment variable from the .env file
 func getEnvVariable(key string) string {
 	err := godotenv.Load("../.env")
 	if err != nil {
@@ -80,6 +81,7 @@ func getEnvVariable(key string) string {
 	return os.Getenv(key)
 }
 
+//Gets the log level from the .env file
 func GetlogLevel() log.Level {
 
 	logLevel := getEnvVariable("LOG_LEVEL")
@@ -127,6 +129,7 @@ func GetLocalIP() string {
 	return ""
 }
 
+// creates the correct tcp, udp address and team name
 func GetIpAndTeam(flag, udpPort string) (string, string, string) {
 	if strings.Contains(flag, "t") && !strings.Contains(flag, "n") {
 		testTcpAddr := getEnvVariable("TEST_HOST") + ":" + getEnvVariable("TEST_PORT")
@@ -152,6 +155,7 @@ func GetIpAndTeam(flag, udpPort string) (string, string, string) {
 
 }
 
+// Generates a random team name
 func getRandTeamName() string {
 	rand.Seed(time.Now().UnixNano())
 	teamName := "Jorge Avila" + strconv.Itoa(rand.Intn(1000))
