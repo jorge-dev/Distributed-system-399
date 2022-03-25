@@ -147,9 +147,9 @@ func sendStopAck(senderAddr, teamName string, conn *net.UDPConn) {
 			conn.Close()
 			break
 		}
-		msg, address, err := receiveUdpMessage(senderAddr, conn)
+		msg, address, err := receiveStopUdpMessage(senderAddr, conn)
 		if err != nil {
-			fmt.Println("There seems to be no more messages from server in tha last 11 seconds", err)
+			fmt.Println("There seems to be no more messages from server in tha last 11 seconds")
 			break
 		} else if string(msg[0:4]) == UDP_STOP {
 			fmt.Println("Received another stop message from ", address)
@@ -170,9 +170,27 @@ func getMAxValue(val1, val2 int) int {
 	return val2
 }
 
+// Handles special stop message received from the server
+func receiveStopUdpMessage(address string, conn *net.UDPConn) (string, string, error) {
+	err := conn.SetReadDeadline(time.Now().Add(time.Second * 11))
+	if err != nil {
+		fmt.Println("Error while setting deadline: ", err)
+		return "", "", err
+	}
+	// Read from the connection
+	data := make([]byte, 1024)
+	len, addr, err := conn.ReadFromUDP(data)
+	if err != nil {
+		return "", "", err
+	}
+	msg := strings.TrimSpace(string(data[:len]))
+
+	return msg, addr.String(), nil
+
+}
+
 // Handles messages received from other peers
 func receiveUdpMessage(address string, conn *net.UDPConn) (string, string, error) {
-	err := conn.SetReadDeadline(time.Now().Add(time.Second * 11))
 	if err != nil {
 		fmt.Println("Error while setting deadline: ", err)
 		return "", "", err
