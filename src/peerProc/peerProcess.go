@@ -191,10 +191,7 @@ func receiveStopUdpMessage(address string, conn *net.UDPConn) (string, string, e
 
 // Handles messages received from other peers
 func receiveUdpMessage(address string, conn *net.UDPConn) (string, string, error) {
-	if err != nil {
-		fmt.Println("Error while setting deadline: ", err)
-		return "", "", err
-	}
+
 	// Read from the connection
 	data := make([]byte, 1024)
 	len, addr, err := conn.ReadFromUDP(data)
