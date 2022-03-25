@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/handlers"
 	"github.com/jorge-dev/Distributed-system-559/src/peerProc"
@@ -88,6 +89,7 @@ loop:
 
 			case CLOSE:
 				fmt.Println("Server is closing the connection ...")
+				time.Sleep(time.Second * 2)
 				connection.Close()
 				return nil
 			default:
