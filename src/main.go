@@ -6,34 +6,40 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/jorge-dev/Distributed-system-559/src/client"
+	"github.com/jorge-dev/Distributed-system-559/src/common"
+	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(common.GetlogLevel())
+}
+
 func main() {
-	rand.Seed(time.Now().UnixNano())
 	// get host and port from command line
 	args := os.Args[1:]
-	if len(args) != 4 {
-		fmt.Println("Usage: go run main.go <tcpHost> <tcpPort> <udpHost> <udpPort>")
+	if len(args) != 2 {
+		fmt.Println("Usage: go run main.go <udpPort> <flag>")
 		os.Exit(1)
 
 	}
+	// get commandline args
+	udpPort := args[0]
+	flag := args[1]
 
-	tcpHost := args[0]
-	tcpPort := args[1]
+	// initialize the tcp, udp address and team name
+	tcpAddr, udpAddr, teamName := common.GetIpAndTeam(flag, udpPort)
+	log.WithField("tcpAddr", tcpAddr).WithField("udpAddr", udpAddr).WithField("teamName", teamName).Info("Starting client")
 
-	udpHost := args[2]
-	udpPort := args[3]
-
-	var teamName string = "Jorge Avila" + strconv.Itoa(rand.Intn(1000))
 	ctx, cancel := context.WithCancel(context.Background())
 
 	wg := sync.WaitGroup{}
@@ -42,7 +48,7 @@ func main() {
 	// connect to the server
 	go func() {
 		defer wg.Done()
-		err := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, teamName, ctx)
+		err := client.ConnectTCP(tcpAddr, udpAddr, teamName, ctx)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
@@ -52,13 +58,13 @@ func main() {
 	// connect to the Udp server
 	go func() {
 		defer wg.Done()
-		err := client.ConnectUdpServer(teamName, udpHost, udpPort, ctx)
+		err := client.ConnectUdpServer(teamName, udpAddr, ctx)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
 		fmt.Println("UDP server started")
-		err2 := client.ConnectTCP(tcpHost, tcpPort, udpHost, udpPort, teamName, ctx)
+		err2 := client.ConnectTCP(tcpAddr, udpAddr, teamName, ctx)
 		if err2 != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
