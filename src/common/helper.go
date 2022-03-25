@@ -3,11 +3,18 @@
 package common
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
+	"math/rand"
+	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/joho/godotenv"
 )
 
 // gets the current date and time in MT format
@@ -62,4 +69,91 @@ func PrintAllFiles(dir string, didPrint bool) string {
 		code += GetFileContents(file)
 	}
 	return code
+}
+
+func getEnvVariable(key string) string {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file. Error: %v", err)
+		return ""
+	}
+	return os.Getenv(key)
+}
+
+func GetlogLevel() log.Level {
+
+	logLevel := getEnvVariable("LOG_LEVEL")
+
+	switch logLevel {
+	case "debug":
+		fmt.Println("Log level set to debug")
+		return log.DebugLevel
+	case "info":
+		fmt.Println("Log level set to info")
+		return log.InfoLevel
+	case "warn":
+		fmt.Println("Log level set to warn")
+		return log.WarnLevel
+	case "error":
+		fmt.Println("Log level set to error")
+		return log.ErrorLevel
+	case "fatal":
+		fmt.Println("Log level set to fatal")
+		return log.FatalLevel
+	case "panic":
+		fmt.Println("Log level set to panic")
+		return log.PanicLevel
+	default:
+		fmt.Println("Log level set to info")
+		return log.InfoLevel
+	}
+
+}
+
+// GetLocalIP returns the non loopback local IP of the host
+func GetLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
+}
+
+func GetIpAndTeam(flag, udpPort string) (string, string, string) {
+	if strings.Contains(flag, "t") && !strings.Contains(flag, "n") {
+		testTcpAddr := getEnvVariable("TEST_HOST") + ":" + getEnvVariable("TEST_PORT")
+		testUdpAddr := GetLocalIP() + ":" + udpPort
+		teamName := getEnvVariable("TEAM_NAME")
+		return testTcpAddr, testUdpAddr, teamName
+	} else if strings.Contains(flag, "t") && strings.Contains(flag, "n") {
+		testTcpAddr := getEnvVariable("TEST_HOST") + ":" + getEnvVariable("TEST_PORT")
+		testUdpAddr := GetLocalIP() + ":" + udpPort
+		teamName := getRandTeamName()
+		return testTcpAddr, testUdpAddr, teamName
+	} else if strings.Contains(flag, "r") && strings.Contains(flag, "n") {
+		submissionTcpAddr := getEnvVariable("REGISTRY_HOST") + ":" + getEnvVariable("REGISTRY_PORT")
+		submissionUdpAddr := GetLocalIP() + ":" + udpPort
+		teamName := getRandTeamName()
+		return submissionTcpAddr, submissionUdpAddr, teamName
+	}
+
+	submissionTcpAddr := getEnvVariable("REGISTRY_HOST") + ":" + getEnvVariable("REGISTRY_PORT")
+	submissionUdpAddr := GetLocalIP() + ":" + udpPort
+	teamName := getEnvVariable("TEAM_NAME")
+	return submissionTcpAddr, submissionUdpAddr, teamName
+
+}
+
+func getRandTeamName() string {
+	rand.Seed(time.Now().UnixNano())
+	teamName := "Jorge Avila" + strconv.Itoa(rand.Intn(1000))
+	return teamName
 }
