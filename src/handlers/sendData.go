@@ -50,13 +50,11 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 		conn.Write([]byte(report))
 
 	} else {
-		fmt.Println("After if inseide else")
 		numberOfSources := len(sources)
 
 		for _, peer := range peers.GetPeerList() {
 			report += peer + "\n"
 		}
-		fmt.Println("After for inseide else")
 		report += strconv.Itoa(numberOfSources) + "\n"
 		report += sources[0].GetSourceAddress() + "\n"
 		report += sources[0].GetTimeStamp() + "\n"
@@ -65,7 +63,6 @@ func SendReport(conn net.Conn, peers sysTypes.Peer, sources []sysTypes.Source) {
 		report += peerProc.PreparelistReceivedPeerInfoToString()
 		report += peerProc.PreparelistSentPeerInfoToString()
 		report += peerProc.PreparelistSnipsToString()
-		// fmt.Printf("\nReport: %s\n", report)
 		conn.Write([]byte(report))
 
 	}
