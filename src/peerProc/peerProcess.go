@@ -118,13 +118,13 @@ func messageHandler(conn *net.UDPConn, teamName, sourceAddress string, msgCtx co
 			if len(msg) >= 4 {
 				switch msg[:4] {
 				case UDP_STOP:
-					fmt.Println("Stopping UDP server")
+					fmt.Println("Received First stop message from ", senderAddr)
 
-					ackMsg := "ack" + teamName
-					sendMessage(senderAddr, ackMsg, conn)
 					cancel()
-					time.Sleep(time.Second * 5)
-					conn.Close()
+					handleStopAck(senderAddr, teamName, conn)
+
+					// time.Sleep(time.Second * 5)
+					// conn.Close()
 					msgCancel()
 					return
 				case UDP_SNIP:
@@ -146,6 +146,32 @@ func messageHandler(conn *net.UDPConn, teamName, sourceAddress string, msgCtx co
 	}
 }
 
+func handleStopAck(senderAddr, teamName string, conn *net.UDPConn) {
+	stopMsgCount := 1
+	ackMsg := "ack" + teamName
+	fmt.Println("Sending ack to ", senderAddr)
+	sendMessage(senderAddr, ackMsg, conn)
+
+	for {
+		if stopMsgCount >= 3 {
+			conn.Close()
+			break
+		}
+		msg, address, err := receiveUdpMessage(senderAddr, conn)
+		if err != nil {
+			fmt.Println("There seems to be no more messages from server in tha last 11 seconds", err)
+			break
+		} else if string(msg[0:4]) == UDP_STOP {
+			fmt.Println("Received another stop message from ", address)
+			fmt.Println("Sending ack to ", address)
+			sendMessage(senderAddr, ackMsg, conn)
+
+			stopMsgCount++
+
+		}
+	}
+}
+
 // Gets the max value from two values
 func getMAxValue(val1, val2 int) int {
 	if val1 > val2 {
@@ -156,11 +182,11 @@ func getMAxValue(val1, val2 int) int {
 
 // Handles messages received from other peers
 func receiveUdpMessage(address string, conn *net.UDPConn) (string, string, error) {
-	// err := conn.SetDeadline(time.Now().Add(time.Second * 10))
-	// if err != nil {
-	// 	fmt.Println("Error while setting deadline: ", err)
-	// 	return "", "", err
-	// }
+	err := conn.SetReadDeadline(time.Now().Add(time.Second * 11))
+	if err != nil {
+		fmt.Println("Error while setting deadline: ", err)
+		return "", "", err
+	}
 	// Read from the connection
 	data := make([]byte, 1024)
 	len, addr, err := conn.ReadFromUDP(data)
